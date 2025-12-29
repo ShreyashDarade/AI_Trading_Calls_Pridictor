@@ -163,84 +163,10 @@ class OptionsService:
         self.risk_free_rate = 0.07  # 7% RBI rate
     
     def generate_chain(self, underlying: str, spot: float, expiry: date) -> OptionsChain:
-        """Generate options chain with strikes around spot"""
-        T = max(0.001, (expiry - date.today()).days / 365)
-        
-        # Generate strikes (every 50 points for NIFTY, 100 for BANKNIFTY)
-        step = 100 if "BANK" in underlying else 50
-        atm = round(spot / step) * step
-        strikes = [atm + i * step for i in range(-10, 11)]
-        
-        options = []
-        total_ce_oi = 0
-        total_pe_oi = 0
-        
-        for strike in strikes:
-            iv = 0.15 + 0.1 * abs(strike - spot) / spot  # Smile approximation
-            
-            # Call option
-            ce_price = BlackScholes.call_price(spot, strike, T, self.risk_free_rate, iv)
-            ce_delta = BlackScholes.delta(spot, strike, T, self.risk_free_rate, iv, OptionType.CALL)
-            ce_gamma = BlackScholes.gamma(spot, strike, T, self.risk_free_rate, iv)
-            ce_theta = BlackScholes.theta(spot, strike, T, self.risk_free_rate, iv, OptionType.CALL)
-            ce_vega = BlackScholes.vega(spot, strike, T, self.risk_free_rate, iv)
-            ce_oi = int(np.random.uniform(10000, 500000))
-            total_ce_oi += ce_oi
-            
-            options.append(Option(
-                symbol=f"{underlying}{expiry.strftime('%d%b%y').upper()}{int(strike)}CE",
-                underlying=underlying,
-                expiry=expiry,
-                strike=strike,
-                option_type=OptionType.CALL,
-                ltp=round(ce_price, 2),
-                iv=round(iv * 100, 2),
-                delta=round(ce_delta, 4),
-                gamma=round(ce_gamma, 6),
-                theta=round(ce_theta, 2),
-                vega=round(ce_vega, 2),
-                oi=ce_oi
-            ))
-            
-            # Put option
-            pe_price = BlackScholes.put_price(spot, strike, T, self.risk_free_rate, iv)
-            pe_delta = BlackScholes.delta(spot, strike, T, self.risk_free_rate, iv, OptionType.PUT)
-            pe_oi = int(np.random.uniform(10000, 500000))
-            total_pe_oi += pe_oi
-            
-            options.append(Option(
-                symbol=f"{underlying}{expiry.strftime('%d%b%y').upper()}{int(strike)}PE",
-                underlying=underlying,
-                expiry=expiry,
-                strike=strike,
-                option_type=OptionType.PUT,
-                ltp=round(pe_price, 2),
-                iv=round(iv * 100, 2),
-                delta=round(pe_delta, 4),
-                gamma=round(ce_gamma, 6),
-                theta=round(BlackScholes.theta(spot, strike, T, self.risk_free_rate, iv, OptionType.PUT), 2),
-                vega=round(ce_vega, 2),
-                oi=pe_oi
-            ))
-        
-        # Calculate max pain
-        max_pain = self._calculate_max_pain(options, strikes)
-        
-        chain = OptionsChain(
-            underlying=underlying,
-            spot_price=spot,
-            expiry=expiry,
-            options=options,
-            atm_strike=atm,
-            total_ce_oi=total_ce_oi,
-            total_pe_oi=total_pe_oi,
-            pcr=round(total_pe_oi / total_ce_oi, 2) if total_ce_oi > 0 else 0,
-            max_pain=max_pain
+        raise HTTPException(
+            status_code=501,
+            detail="Options chain generation is disabled (requires real market chain data source)"
         )
-        
-        key = f"{underlying}_{expiry}"
-        self.chains_cache[key] = chain
-        return chain
     
     def _calculate_max_pain(self, options: List[Option], strikes: List[float]) -> float:
         """Calculate max pain strike"""

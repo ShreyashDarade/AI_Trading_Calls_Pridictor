@@ -590,17 +590,11 @@ async def get_portfolio():
             "holdings_count": len(holdings),
             "source": "Groww"
         }
-    
-    # Return placeholder if no Groww access
-    return {
-        "total_value": 0,
-        "invested": 0,
-        "pnl": 0,
-        "pnl_percent": 0,
-        "holdings_count": 0,
-        "source": "none",
-        "message": "Connect Groww API to see portfolio"
-    }
+
+    raise HTTPException(
+        status_code=503,
+        detail="No portfolio data available (connect Groww to fetch real holdings)"
+    )
 
 
 @app.get("/api/positions")
@@ -634,7 +628,7 @@ async def get_holdings():
 
 
 # ============================================
-# SIGNALS (Demo signals when service unavailable)
+# SIGNALS (Real only)
 # ============================================
 
 @app.get("/api/signals/latest")
@@ -656,91 +650,13 @@ async def get_latest_signals(
                 return data
     except Exception as e:
         logger.warning(f"Signal service unavailable: {e}")
-    
-    # Return demo signals if signal service unavailable or returns empty
-        demo_signals = [
-            {
-                "id": "demo-1",
-                "symbol": "RELIANCE",
-                "exchange": "NSE",
-                "action": "LONG",
-                "confidence": 0.78,
-                "entry_price": 2450.50,
-                "stop_loss": 2401.49,
-                "target_1": 2524.02,
-                "target_2": 2573.03,
-                "reason_codes": ["RSI_OVERSOLD", "UPTREND", "VOLUME_SPIKE"],
-                "prediction_mode": "ml",
-                "created_at": datetime.now().isoformat()
-            },
-            {
-                "id": "demo-2",
-                "symbol": "TCS",
-                "exchange": "NSE",
-                "action": "LONG",
-                "confidence": 0.72,
-                "entry_price": 3890.25,
-                "stop_loss": 3812.45,
-                "target_1": 4006.96,
-                "target_2": 4084.76,
-                "reason_codes": ["MACD_BULLISH", "EMA_CROSS_UP"],
-                "prediction_mode": "ml",
-                "created_at": datetime.now().isoformat()
-            },
-            {
-                "id": "demo-3",
-                "symbol": "HDFCBANK",
-                "exchange": "NSE",
-                "action": "SHORT",
-                "confidence": 0.65,
-                "entry_price": 1650.00,
-                "stop_loss": 1683.00,
-                "target_1": 1600.50,
-                "target_2": 1567.50,
-                "reason_codes": ["RSI_OVERBOUGHT", "RESISTANCE"],
-                "prediction_mode": "ml",
-                "created_at": datetime.now().isoformat()
-            },
-            {
-                "id": "demo-4",
-                "symbol": "INFY",
-                "exchange": "NSE",
-                "action": "LONG",
-                "confidence": 0.81,
-                "entry_price": 1425.75,
-                "stop_loss": 1397.24,
-                "target_1": 1468.52,
-                "target_2": 1496.04,
-                "reason_codes": ["BREAKOUT", "HIGH_VOLUME", "UPTREND"],
-                "prediction_mode": "gpt",
-                "gpt_analysis": "Strong bullish momentum with volume confirmation",
-                "created_at": datetime.now().isoformat()
-            },
-            {
-                "id": "demo-5",
-                "symbol": "ICICIBANK",
-                "exchange": "NSE",
-                "action": "LONG",
-                "confidence": 0.69,
-                "entry_price": 1075.50,
-                "stop_loss": 1054.00,
-                "target_1": 1107.77,
-                "target_2": 1129.28,
-                "reason_codes": ["SUPPORT_BOUNCE", "MACD_BULLISH"],
-                "prediction_mode": "ml",
-                "created_at": datetime.now().isoformat()
-            },
-        ]
-        
-        # Filter by confidence
-        filtered = [s for s in demo_signals if s["confidence"] >= min_confidence]
-        
-        return {
-            "signals": filtered[:limit],
-            "source": "demo",
-            "message": "Demo signals - Start Signal Service for live AI predictions",
-            "timestamp": datetime.now().isoformat()
-        }
+
+    return {
+        "signals": [],
+        "source": "none",
+        "message": "No live signals available (start Signal Service and ensure data sources are configured)",
+        "timestamp": datetime.now().isoformat()
+    }
 
 
 # ============================================

@@ -6,6 +6,11 @@ Usage:
     python scripts/run_all.py           # Start all services
     python scripts/run_all.py --api     # Start only API Gateway
     python scripts/run_all.py --minimal # Start only essential services
+    python scripts/run_all.py --all     # Explicitly start all services
+
+Options:
+    --no-reload   Disable uvicorn auto-reload
+    --wait        Wait for each service /health before continuing
 """
 import subprocess
 import sys
@@ -13,6 +18,9 @@ import os
 import signal
 import time
 from pathlib import Path
+from typing import List, Tuple
+
+import httpx
 
 # Project root
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -63,10 +71,10 @@ SERVICES = {
     },
 }
 
-processes = []
+processes: List[Tuple[str, subprocess.Popen]] = []
 
 
-def run_service(key: str, service: dict) -> subprocess.Popen:
+def run_service(key: str, service: dict, *, reload: bool) -> subprocess.Popen:
     """Start a single service"""
     name = service["name"]
     path = service["path"]
@@ -82,15 +90,16 @@ def run_service(key: str, service: dict) -> subprocess.Popen:
         f"{module_path}:app",
         "--host", "0.0.0.0",
         "--port", str(port),
-        "--reload"
     ]
+    if reload:
+        cmd.append("--reload")
     
     # Start the process
     proc = subprocess.Popen(
         cmd,
         cwd=PROJECT_ROOT,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
+        stdout=None,
+        stderr=None,
         text=True
     )
     
@@ -101,7 +110,7 @@ def stop_all():
     """Stop all running services"""
     global processes
     print("\n⏹️  Stopping all services...")
-    for proc in processes:
+    for _, proc in processes:
         try:
             proc.terminate()
             proc.wait(timeout=5)
@@ -126,6 +135,9 @@ def main():
     
     # Parse arguments
     args = sys.argv[1:]
+    reload = "--no-reload" not in args
+    wait = "--wait" in args
+    args = [a for a in args if a not in {"--no-reload", "--wait"}]
     
     if "--help" in args or "-h" in args:
         print(__doc__)
@@ -139,6 +151,8 @@ def main():
         services_to_start = ["api-gateway"]
     elif "--minimal" in args:
         services_to_start = [k for k, v in SERVICES.items() if v.get("essential")]
+    elif "--all" in args:
+        services_to_start = list(SERVICES.keys())
     elif args:
         # Specific services provided
         services_to_start = [a for a in args if a in SERVICES]
@@ -172,9 +186,12 @@ def main():
     for key in available_services:
         service = SERVICES[key]
         try:
-            proc = run_service(key, service)
+            proc = run_service(key, service, reload=reload)
             processes.append((key, proc))
             time.sleep(1)  # Small delay between starts
+            
+            if wait:
+                _wait_for_health(service["port"], service["name"])
         except Exception as e:
             print(f"  ❌ Failed to start {service['name']}: {e}")
     
@@ -205,6 +222,21 @@ def main():
             time.sleep(2)
     except KeyboardInterrupt:
         stop_all()
+
+
+def _wait_for_health(port: int, name: str, timeout_s: float = 30.0) -> None:
+    url = f"http://localhost:{port}/health"
+    start = time.time()
+    while True:
+        try:
+            r = httpx.get(url, timeout=2.0)
+            if r.status_code == 200:
+                return
+        except Exception:
+            pass
+        if time.time() - start > timeout_s:
+            raise RuntimeError(f"Timeout waiting for {name} at {url}")
+        time.sleep(0.5)
 
 
 if __name__ == "__main__":

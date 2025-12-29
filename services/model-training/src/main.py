@@ -340,33 +340,10 @@ class ModelTrainer:
     
     async def _load_training_data(self, config: TrainingConfig) -> List[dict]:
         """Load historical candle data"""
-        # TODO: Fetch from ClickHouse or Groww API
-        # For now, generate synthetic data
-        
-        candles = []
-        base_price = 1000.0
-        
-        num_candles = (config.end_date - config.start_date).days * 25  # ~25 candles per day
-        
-        for i in range(num_candles):
-            change = np.random.normal(0, 0.02)
-            open_price = base_price
-            close_price = base_price * (1 + change)
-            high_price = max(open_price, close_price) * (1 + abs(np.random.normal(0, 0.005)))
-            low_price = min(open_price, close_price) * (1 - abs(np.random.normal(0, 0.005)))
-            
-            candles.append({
-                "timestamp": config.start_date + timedelta(minutes=15*i),
-                "open": open_price,
-                "high": high_price,
-                "low": low_price,
-                "close": close_price,
-                "volume": int(np.random.uniform(10000, 1000000))
-            })
-            
-            base_price = close_price
-        
-        return candles
+        raise HTTPException(
+            status_code=501,
+            detail="Training data loading is not implemented; configure ClickHouse/Groww ingestion to use real historical candles"
+        )
     
     def _create_labels(self, candles: List[dict], horizon: int) -> np.ndarray:
         """Create labels: 1 if price goes up by >1%, 0 otherwise"""

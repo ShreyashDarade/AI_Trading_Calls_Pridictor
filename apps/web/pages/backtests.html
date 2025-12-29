@@ -415,8 +415,8 @@
       document.getElementById('to-date').valueAsDate = today;
       document.getElementById('from-date').valueAsDate = threeMonthsAgo;
 
-      // Backtest history
-      let backtestHistory = JSON.parse(localStorage.getItem('backtestHistory') || '[]');
+      // Backtest history (real only)
+      let backtestHistory = [];
 
       function selectMode(mode) {
         selectedMode = mode;
@@ -431,90 +431,7 @@
       }
 
       function generateBacktestResults() {
-        const symbol = document.getElementById('symbol').value;
-        const strategy = document.getElementById('strategy').value;
-        const capital = parseFloat(document.getElementById('capital').value);
-        const positionSize = parseFloat(document.getElementById('position-size').value);
-        
-        // Simulate backtest results
-        const totalReturn = (Math.random() * 50 - 10);
-        const trades = Math.floor(Math.random() * 40 + 15);
-        const winRate = Math.floor(Math.random() * 25 + 50);
-        const lossTrades = Math.floor(trades * (1 - winRate/100));
-        const winTrades = trades - lossTrades;
-        
-        // Generate equity curve data
-        const days = 90;
-        let equity = capital;
-        const equityData = [];
-        const drawdownData = [];
-        let peak = capital;
-        
-        for (let i = 0; i < days; i++) {
-          const date = new Date(threeMonthsAgo);
-          date.setDate(date.getDate() + i);
-          
-          // Random daily return with trend
-          const dailyReturn = (Math.random() - 0.45) * 0.02 + (totalReturn > 0 ? 0.001 : -0.001);
-          equity *= (1 + dailyReturn);
-          
-          if (equity > peak) peak = equity;
-          const drawdown = ((equity - peak) / peak) * 100;
-          
-          equityData.push({ x: date, y: equity });
-          drawdownData.push({ x: date, y: drawdown });
-        }
-        
-        // Generate monthly returns
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const monthlyReturns = months.slice(0, 6).map(() => (Math.random() * 20 - 8));
-        
-        // Generate trades
-        const tradeLog = [];
-        for (let i = 0; i < Math.min(trades, 15); i++) {
-          const isWin = Math.random() > (1 - winRate/100);
-          const tradeType = Math.random() > 0.3 ? 'LONG' : 'SHORT';
-          const entryPrice = 1000 + Math.random() * 2000;
-          const pnlPct = isWin ? Math.random() * 5 + 0.5 : -(Math.random() * 3 + 0.5);
-          const exitPrice = entryPrice * (1 + (tradeType === 'LONG' ? pnlPct : -pnlPct) / 100);
-          const pnl = (capital * positionSize / 100) * (pnlPct / 100);
-          
-          const tradeDate = new Date(threeMonthsAgo);
-          tradeDate.setDate(tradeDate.getDate() + Math.floor(Math.random() * 85));
-          
-          tradeLog.push({
-            date: tradeDate.toLocaleDateString('en-IN'),
-            type: tradeType,
-            entry: entryPrice,
-            exit: exitPrice,
-            pnl: pnl,
-            pnlPct: pnlPct,
-            reason: isWin ? 'Target Hit' : 'Stop Loss'
-          });
-        }
-        
-        return {
-          symbol,
-          strategy,
-          mode: selectedMode,
-          capital,
-          totalReturn,
-          finalValue: capital * (1 + totalReturn / 100),
-          trades,
-          winRate,
-          winTrades,
-          lossTrades,
-          sharpe: (Math.random() * 2 + 0.5),
-          maxDrawdown: Math.abs(Math.min(...drawdownData.map(d => d.y))),
-          profitFactor: (Math.random() * 1.5 + 1),
-          avgTrade: (capital * totalReturn / 100) / trades,
-          equityData,
-          drawdownData,
-          monthlyReturns,
-          months: months.slice(0, 6),
-          tradeLog,
-          timestamp: new Date().toISOString()
-        };
+        throw new Error('Backtesting demo mode is disabled; configure real historical data + backtest service.');
       }
 
       function displayResults(results) {
@@ -755,17 +672,7 @@
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
 
-        // Simulate processing time
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        const results = generateBacktestResults();
-        
-        // Save to history
-        backtestHistory.unshift(results);
-        localStorage.setItem('backtestHistory', JSON.stringify(backtestHistory.slice(0, 50)));
-        
-        displayResults(results);
-        renderHistory();
+        alert('Backtesting is disabled until real historical data is configured.');
 
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-play"></i> Run Backtest';

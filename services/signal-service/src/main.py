@@ -219,41 +219,6 @@ class SignalGenerator:
         self.model_version = "v1"
         self.config = SignalGeneratorConfig()
         self.gpt_predictor = GPTPredictor(config.OPENAI_API_KEY)
-        self._generate_demo_signals()
-    
-    def _generate_demo_signals(self):
-        """Generate demo signals for display"""
-        demo_stocks = [
-            ("RELIANCE", 2450.50, SignalAction.LONG, 0.78, ["RSI_OVERSOLD", "UPTREND", "VOLUME_SPIKE"]),
-            ("TCS", 3890.25, SignalAction.LONG, 0.72, ["MACD_BULLISH", "EMA_CROSS_UP"]),
-            ("HDFCBANK", 1650.00, SignalAction.SHORT, 0.65, ["RSI_OVERBOUGHT", "RESISTANCE"]),
-            ("INFY", 1425.75, SignalAction.LONG, 0.81, ["BREAKOUT", "HIGH_VOLUME", "UPTREND"]),
-            ("SBIN", 628.30, SignalAction.NO_TRADE, 0.45, ["CONSOLIDATION", "LOW_VOLUME"]),
-            ("ICICIBANK", 1075.50, SignalAction.LONG, 0.69, ["SUPPORT_BOUNCE", "MACD_BULLISH"]),
-            ("ITC", 465.25, SignalAction.LONG, 0.74, ["OVERSOLD", "REVERSAL_PATTERN"]),
-            ("TATASTEEL", 128.45, SignalAction.SHORT, 0.67, ["BREAKDOWN", "BEARISH_ENGULFING"]),
-        ]
-        
-        for symbol, price, action, confidence, reasons in demo_stocks:
-            sl_mult = 0.98 if action == SignalAction.LONG else 1.02
-            t1_mult = 1.03 if action == SignalAction.LONG else 0.97
-            t2_mult = 1.05 if action == SignalAction.LONG else 0.95
-            
-            signal = Signal(
-                instrument_id=f"NSE:{symbol}",
-                symbol=symbol,
-                exchange="NSE",
-                action=action,
-                confidence=confidence,
-                entry_price=round(price, 2),
-                stop_loss=round(price * sl_mult, 2) if action != SignalAction.NO_TRADE else None,
-                target_1=round(price * t1_mult, 2) if action != SignalAction.NO_TRADE else None,
-                target_2=round(price * t2_mult, 2) if action != SignalAction.NO_TRADE else None,
-                reason_codes=reasons,
-                prediction_mode="ml",
-                expires_at=datetime.utcnow() + timedelta(hours=4)
-            )
-            self.signals[signal.id] = signal
     
     async def initialize(self):
         """Initialize the generator"""
@@ -398,21 +363,7 @@ class SignalGenerator:
         except Exception as e:
             logger.error(f"Feature fetch error: {e}")
         
-        # Return dummy features
-        return {
-            "price": 1000,
-            "rsi_14": 50,
-            "macd": 0,
-            "macd_signal": 0,
-            "macd_histogram": 0,
-            "price_vs_sma20": 0,
-            "sma_cross": 0,
-            "ema_cross": 0,
-            "volume_spike": 1,
-            "returns_1": 0,
-            "returns_5": 0,
-            "atr_14": 0,
-        }
+        return {}
     
     async def _model_prediction(self, features: Dict[str, float]) -> tuple:
         """Get prediction from ML model"""
@@ -530,6 +481,7 @@ class SignalGenerator:
 
 # Global generator
 generator = SignalGenerator()
+_auto_task: Optional[asyncio.Task] = None
 
 
 # ============================================
@@ -539,6 +491,59 @@ generator = SignalGenerator()
 @app.on_event("startup")
 async def startup():
     await generator.initialize()
+    _maybe_start_auto_signal_generation()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    global _auto_task
+    if _auto_task and not _auto_task.done():
+        _auto_task.cancel()
+        _auto_task = None
+
+
+def _maybe_start_auto_signal_generation() -> None:
+    """
+    Optionally run continuous signal generation from real market data.
+
+    Controlled by env vars:
+      - AUTO_GENERATE_SIGNALS=true|false (default false)
+      - SIGNAL_WATCHLIST=RELIANCE,TCS,... (default empty; will use NSEClient's list if empty)
+      - SIGNAL_REFRESH_SECONDS=300
+    """
+    global _auto_task
+    if _auto_task and not _auto_task.done():
+        return
+
+    enabled = os.getenv("AUTO_GENERATE_SIGNALS", "").strip().lower() in {"1", "true", "yes", "on"}
+    if not enabled:
+        return
+
+    refresh_s = float(os.getenv("SIGNAL_REFRESH_SECONDS", "300"))
+    watchlist_raw = os.getenv("SIGNAL_WATCHLIST", "").strip()
+    symbols = [s.strip().upper() for s in watchlist_raw.split(",") if s.strip()] if watchlist_raw else []
+
+    async def _runner() -> None:
+        nonlocal symbols, refresh_s
+        while True:
+            try:
+                if not symbols:
+                    # Keep it small by default; can be overridden via SIGNAL_WATCHLIST.
+                    symbols = ["RELIANCE", "TCS", "HDFCBANK", "INFY", "SBIN", "ITC", "ICICIBANK", "KOTAKBANK"]
+
+                for symbol in symbols[:20]:
+                    try:
+                        await generator.generate_signal(symbol=symbol, mode=PredictionMode.AUTO)
+                    except Exception as e:
+                        logger.warning(f"Auto signal generation failed for {symbol}: {e}")
+                await asyncio.sleep(max(5.0, refresh_s))
+            except asyncio.CancelledError:
+                return
+            except Exception as e:
+                logger.error(f"Auto signal generation loop error: {e}")
+                await asyncio.sleep(10.0)
+
+    _auto_task = asyncio.create_task(_runner())
 
 
 # ============================================

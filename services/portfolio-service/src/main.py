@@ -84,29 +84,6 @@ class PortfolioStore:
         self.positions: Dict[str, Position] = {}
         self.orders: List[Order] = []
         self.equity_history: List[Dict] = []
-        
-        # Initialize with mock positions
-        self._init_mock_data()
-    
-    def _init_mock_data(self):
-        """Initialize with sample positions"""
-        self.positions = {
-            "RELIANCE": Position(
-                instrument_id="NSE:RELIANCE",
-                symbol="RELIANCE",
-                quantity=50,
-                average_price=2400.00,
-                current_price=2456.75,
-            ),
-            "SBIN": Position(
-                instrument_id="NSE:SBIN",
-                symbol="SBIN",
-                quantity=200,
-                average_price=620.00,
-                current_price=634.25,
-            ),
-        }
-        self._update_pnl()
     
     def _update_pnl(self):
         """Update P&L for all positions"""
@@ -183,9 +160,12 @@ class PortfolioStore:
     
     def _execute_order(self, order: Order):
         """Execute order (paper trading)"""
-        # Get current price (mock)
-        import random
-        current_price = order.price or random.uniform(500, 3000)
+        if order.price is None:
+            raise HTTPException(
+                status_code=400,
+                detail="Market execution requires a real price; pass price explicitly or integrate live quotes"
+            )
+        current_price = float(order.price)
         
         order.price = current_price
         order.status = "COMPLETED"
@@ -282,27 +262,10 @@ async def update_prices(prices: Dict[str, float]):
 @app.get("/equity-curve")
 async def get_equity_curve(days: int = Query(default=30, le=365)):
     """Get equity curve for charting"""
-    # Mock equity curve data
-    import random
-    from datetime import timedelta
-    
-    curve = []
-    base_value = store.capital
-    current = base_value
-    
-    for i in range(days):
-        date_val = datetime.now() - timedelta(days=days - i)
-        change = random.uniform(-0.02, 0.03)
-        current = current * (1 + change)
-        
-        curve.append({
-            "date": date_val.strftime("%Y-%m-%d"),
-            "equity": round(current, 2),
-            "cash": round(current * 0.5, 2),
-            "invested": round(current * 0.5, 2)
-        })
-    
-    return {"curve": curve}
+    raise HTTPException(
+        status_code=501,
+        detail="Equity curve history is not implemented; requires persistence of portfolio snapshots"
+    )
 
 
 if __name__ == "__main__":

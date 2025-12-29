@@ -323,22 +323,9 @@ async def get_status():
 
 
 @app.post("/train")
-async def train(episodes: int = 100, background_tasks: BackgroundTasks = None):
-    # Generate sample data for training
-    candles = []
-    price = 1000
-    for i in range(1000):
-        change = np.random.normal(0, 0.02)
-        price *= (1 + change)
-        candles.append({
-            "timestamp": datetime.now(),
-            "open": price * 0.999,
-            "high": price * 1.01,
-            "low": price * 0.99,
-            "close": price,
-            "volume": int(np.random.uniform(10000, 100000))
-        })
-    
+async def train(candles: List[dict], episodes: int = 100, background_tasks: BackgroundTasks = None):
+    if not candles:
+        raise HTTPException(status_code=400, detail="candles is required (real OHLCV data)")
     result = await service.train(candles, episodes)
     return result
 

@@ -6,6 +6,8 @@ import logging
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 
+import os
+import httpx
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 
@@ -95,31 +97,40 @@ class FeatureComputer:
         periods: int
     ) -> List[Dict]:
         """Get candles from market store"""
-        # TODO: Implement ClickHouse query
-        # For now, return mock data
-        import random
-        
-        base_price = random.uniform(500, 3000)
-        candles = []
-        
-        for i in range(periods):
-            change = random.uniform(-0.02, 0.02)
-            open_price = base_price * (1 + change)
-            high = open_price * (1 + random.uniform(0, 0.01))
-            low = open_price * (1 - random.uniform(0, 0.01))
-            close = random.uniform(low, high)
-            
-            candles.append({
-                "open": open_price,
-                "high": high,
-                "low": low,
-                "close": close,
-                "volume": random.randint(10000, 1000000)
-            })
-            
-            base_price = close
-        
-        return candles
+        symbol = instrument_id.split(":")[-1].upper()
+        nse_url = os.getenv("NSE_SERVICE_URL", "http://localhost:8020").rstrip("/")
+
+        if timeframe not in {"1d"}:
+            raise HTTPException(
+                status_code=400,
+                detail="Only timeframe=1d is supported until ClickHouse ingestion is implemented"
+            )
+
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.get(f"{nse_url}/api/historical/{symbol}")
+                response.raise_for_status()
+                payload = response.json()
+        except Exception as e:
+            raise HTTPException(status_code=503, detail=f"Failed to fetch historical data for {symbol}: {e}")
+
+        candles_raw = payload.get("candles") or []
+        if not candles_raw:
+            return []
+
+        candles = [
+            {
+                "open": float(c.get("open", 0) or 0),
+                "high": float(c.get("high", 0) or 0),
+                "low": float(c.get("low", 0) or 0),
+                "close": float(c.get("close", 0) or 0),
+                "volume": int(c.get("volume", 0) or 0),
+            }
+            for c in candles_raw
+            if c.get("close") is not None
+        ]
+
+        return candles[-periods:]
     
     async def _compute_all_features(self, candles: List[Dict]) -> Dict[str, Any]:
         """Compute all features from candles"""
