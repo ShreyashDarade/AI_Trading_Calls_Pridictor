@@ -210,7 +210,7 @@ indian-ai-trader/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/indian-ai-trader.git
+git clone https://github.com/ShreyashDarade/indian-ai-trader.git
 cd indian-ai-trader
 ```
 
