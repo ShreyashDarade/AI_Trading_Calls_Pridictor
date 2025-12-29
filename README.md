@@ -14,7 +14,7 @@ An intelligent trading platform that provides real-time NSE market data, AI-gene
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-repo/indian-ai-trader.git
+git clone https://github.com/ShreyashDarade/indian-ai-trader.git
 cd indian-ai-trader
 
 # 2. Install dependencies
