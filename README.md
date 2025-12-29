@@ -335,7 +335,7 @@ python scripts/test_groww_api.py
 - [x] Real-time price updates (SSE)
 - [x] Modern dark theme dashboard
 - [x] Backtesting interface
-- [ ] AI signal generation
+- [x] AI signal generation
 - [ ] Groww API trading
 - [ ] Portfolio tracking
 - [ ] Mobile responsive improvements
