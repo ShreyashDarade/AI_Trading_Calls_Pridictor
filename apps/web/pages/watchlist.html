@@ -1,305 +1,388 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Stock Watchlist - Track NIFTY 50 and custom stock lists with real-time prices.">
-    <title>Watchlist | Indian AI Trader</title>
-    
-    <link rel="icon" type="image/svg+xml" href="/assets/logo.svg">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <link rel="stylesheet" href="/css/base.css">
-    <link rel="stylesheet" href="/css/components.css">
-    <link rel="stylesheet" href="/css/pages.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Watchlist - Indian AI Trader</title>
+    <meta name="description" content="Track your favorite stocks in real-time with NSE data" />
+    <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/components.css" />
+    <link rel="stylesheet" href="/css/pages.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      .watchlist-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+      }
+      .stock-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1.25rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+      .stock-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--primary);
+        box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
+      }
+      .stock-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+      }
+      .stock-symbol {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+      .stock-name {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-top: 0.25rem;
+      }
+      .stock-price {
+        text-align: right;
+      }
+      .stock-ltp {
+        font-size: 1.5rem;
+        font-weight: 600;
+        font-family: var(--font-mono);
+      }
+      .stock-change {
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-top: 0.25rem;
+      }
+      .stock-change.positive { color: var(--success); }
+      .stock-change.negative { color: var(--danger); }
+      .stock-metrics {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.5rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+      }
+      .metric {
+        text-align: center;
+      }
+      .metric-label {
+        font-size: 0.625rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .metric-value {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        font-family: var(--font-mono);
+      }
+      .market-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+      .index-card {
+        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1rem;
+      }
+      .index-name {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+      }
+      .index-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        font-family: var(--font-mono);
+      }
+      .index-change {
+        font-size: 0.875rem;
+        font-weight: 500;
+      }
+      .loading-skeleton {
+        background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-secondary) 50%, var(--bg-tertiary) 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+        border-radius: var(--radius);
+      }
+      @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+      .filter-bar {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+      }
+      .filter-btn {
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius);
+        border: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .filter-btn:hover, .filter-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+      }
+    </style>
+  </head>
+  <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <div class="navbar-content">
-            <a href="/" class="navbar-brand">
-                <i class="fas fa-chart-line"></i>
-                <span>Indian AI Trader</span>
-            </a>
-            
-            <ul class="navbar-nav">
-                <li><a href="/" class="nav-link"><i class="fas fa-home"></i> Dashboard</a></li>
-                <li><a href="/watchlist" class="nav-link active"><i class="fas fa-eye"></i> Watchlist</a></li>
-                <li><a href="/signals" class="nav-link"><i class="fas fa-bolt"></i> Signals</a></li>
-                <li><a href="/pages/backtests.html" class="nav-link"><i class="fas fa-chart-bar"></i> Backtests</a></li>
-                <li><a href="/pages/settings.html" class="nav-link"><i class="fas fa-cog"></i> Settings</a></li>
-            </ul>
-            
-            <div class="market-status" id="market-status">
-                <span class="market-status-dot closed" id="market-dot"></span>
-                <span id="market-label">Market Closed</span>
-            </div>
+      <div class="container navbar-content">
+        <a href="/" class="navbar-brand">
+          <i class="fas fa-chart-line"></i>
+          <span>Indian AI Trader</span>
+        </a>
+        <div class="navbar-menu">
+          <a href="/" class="nav-link">Dashboard</a>
+          <a href="/watchlist" class="nav-link active">Watchlist</a>
+          <a href="/signals" class="nav-link">Signals</a>
+          <a href="/backtests" class="nav-link">Backtests</a>
+          <a href="/settings" class="nav-link"><i class="fas fa-cog"></i></a>
         </div>
+      </div>
     </nav>
-    
-    <main class="main-content">
-        <div class="container">
-            <!-- Page Header -->
-            <div class="page-header">
-                <h1 class="page-title">
-                    <i class="fas fa-eye" style="color: var(--accent-primary);"></i>
-                    Stock Watchlist
-                </h1>
-                <p class="page-subtitle">Track your favorite stocks with real-time prices and quick access to signals</p>
-            </div>
-            
-            <!-- Controls -->
-            <div class="watchlist-controls">
-                <div class="search-container watchlist-search">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" class="form-input search-input" id="watchlist-search" placeholder="Search stocks (e.g., RELIANCE, TCS)">
-                </div>
-                
-                <div class="tabs">
-                    <button class="tab active" data-list="nifty50">NIFTY 50</button>
-                    <button class="tab" data-list="banknifty">Bank NIFTY</button>
-                    <button class="tab" data-list="custom">My Watchlist</button>
-                </div>
-            </div>
-            
-            <!-- Market Summary -->
-            <div class="grid grid-3 mb-lg">
-                <div class="card stat-card">
-                    <div class="stat-value" style="font-size: 1.5rem;">
-                        <span class="text-success"><i class="fas fa-caret-up"></i></span>
-                        24,853.75
-                    </div>
-                    <div class="stat-label">NIFTY 50</div>
-                    <div class="text-success" style="font-size: 0.875rem; margin-top: 0.25rem;">+142.50 (+0.58%)</div>
-                </div>
-                <div class="card stat-card">
-                    <div class="stat-value" style="font-size: 1.5rem;">
-                        <span class="text-success"><i class="fas fa-caret-up"></i></span>
-                        52,147.25
-                    </div>
-                    <div class="stat-label">Bank NIFTY</div>
-                    <div class="text-success" style="font-size: 0.875rem; margin-top: 0.25rem;">+385.80 (+0.75%)</div>
-                </div>
-                <div class="card stat-card">
-                    <div class="stat-value" style="font-size: 1.5rem;">
-                        <span class="text-danger"><i class="fas fa-caret-down"></i></span>
-                        82,458.30
-                    </div>
-                    <div class="stat-label">SENSEX</div>
-                    <div class="text-danger" style="font-size: 0.875rem; margin-top: 0.25rem;">-128.45 (-0.16%)</div>
-                </div>
-            </div>
-            
-            <!-- Watchlist Grid -->
-            <div class="watchlist-grid" id="watchlist-grid">
-                <!-- Stock Tiles -->
-                <div class="stock-tile" onclick="window.location='/stock/RELIANCE'">
-                    <div class="stock-info">
-                        <span class="stock-symbol">RELIANCE</span>
-                        <span class="stock-name">Reliance Industries</span>
-                    </div>
-                    <div class="stock-price-container">
-                        <div class="stock-ltp">₹2,456.75</div>
-                        <div class="stock-change positive">
-                            <i class="fas fa-caret-up"></i>
-                            <span>+1.25 (+0.05%)</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="stock-tile" onclick="window.location='/stock/TCS'">
-                    <div class="stock-info">
-                        <span class="stock-symbol">TCS</span>
-                        <span class="stock-name">Tata Consultancy Services</span>
-                    </div>
-                    <div class="stock-price-container">
-                        <div class="stock-ltp">₹3,890.50</div>
-                        <div class="stock-change negative">
-                            <i class="fas fa-caret-down"></i>
-                            <span>-12.30 (-0.32%)</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="stock-tile" onclick="window.location='/stock/HDFCBANK'">
-                    <div class="stock-info">
-                        <span class="stock-symbol">HDFCBANK</span>
-                        <span class="stock-name">HDFC Bank</span>
-                    </div>
-                    <div class="stock-price-container">
-                        <div class="stock-ltp">₹1,678.25</div>
-                        <div class="stock-change positive">
-                            <i class="fas fa-caret-up"></i>
-                            <span>+8.45 (+0.51%)</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="stock-tile" onclick="window.location='/stock/INFY'">
-                    <div class="stock-info">
-                        <span class="stock-symbol">INFY</span>
-                        <span class="stock-name">Infosys</span>
-                    </div>
-                    <div class="stock-price-container">
-                        <div class="stock-ltp">₹1,567.80</div>
-                        <div class="stock-change negative">
-                            <i class="fas fa-caret-down"></i>
-                            <span>-5.20 (-0.33%)</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="stock-tile" onclick="window.location='/stock/ICICIBANK'">
-                    <div class="stock-info">
-                        <span class="stock-symbol">ICICIBANK</span>
-                        <span class="stock-name">ICICI Bank</span>
-                    </div>
-                    <div class="stock-price-container">
-                        <div class="stock-ltp">₹1,023.45</div>
-                        <div class="stock-change positive">
-                            <i class="fas fa-caret-up"></i>
-                            <span>+15.60 (+1.55%)</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="stock-tile" onclick="window.location='/stock/HINDUNILVR'">
-                    <div class="stock-info">
-                        <span class="stock-symbol">HINDUNILVR</span>
-                        <span class="stock-name">Hindustan Unilever</span>
-                    </div>
-                    <div class="stock-price-container">
-                        <div class="stock-ltp">₹2,567.90</div>
-                        <div class="stock-change negative">
-                            <i class="fas fa-caret-down"></i>
-                            <span>-8.75 (-0.34%)</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="stock-tile" onclick="window.location='/stock/SBIN'">
-                    <div class="stock-info">
-                        <span class="stock-symbol">SBIN</span>
-                        <span class="stock-name">State Bank of India</span>
-                    </div>
-                    <div class="stock-price-container">
-                        <div class="stock-ltp">₹634.25</div>
-                        <div class="stock-change positive">
-                            <i class="fas fa-caret-up"></i>
-                            <span>+12.40 (+1.99%)</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="stock-tile" onclick="window.location='/stock/BHARTIARTL'">
-                    <div class="stock-info">
-                        <span class="stock-symbol">BHARTIARTL</span>
-                        <span class="stock-name">Bharti Airtel</span>
-                    </div>
-                    <div class="stock-price-container">
-                        <div class="stock-ltp">₹1,234.50</div>
-                        <div class="stock-change positive">
-                            <i class="fas fa-caret-up"></i>
-                            <span>+23.80 (+1.97%)</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="stock-tile" onclick="window.location='/stock/ITC'">
-                    <div class="stock-info">
-                        <span class="stock-symbol">ITC</span>
-                        <span class="stock-name">ITC Ltd</span>
-                    </div>
-                    <div class="stock-price-container">
-                        <div class="stock-ltp">₹456.75</div>
-                        <div class="stock-change positive">
-                            <i class="fas fa-caret-up"></i>
-                            <span>+3.25 (+0.72%)</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="stock-tile" onclick="window.location='/stock/KOTAKBANK'">
-                    <div class="stock-info">
-                        <span class="stock-symbol">KOTAKBANK</span>
-                        <span class="stock-name">Kotak Mahindra Bank</span>
-                    </div>
-                    <div class="stock-price-container">
-                        <div class="stock-ltp">₹1,789.30</div>
-                        <div class="stock-change negative">
-                            <i class="fas fa-caret-down"></i>
-                            <span>-15.40 (-0.85%)</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="stock-tile" onclick="window.location='/stock/LT'">
-                    <div class="stock-info">
-                        <span class="stock-symbol">LT</span>
-                        <span class="stock-name">Larsen & Toubro</span>
-                    </div>
-                    <div class="stock-price-container">
-                        <div class="stock-ltp">₹3,456.20</div>
-                        <div class="stock-change positive">
-                            <i class="fas fa-caret-up"></i>
-                            <span>+42.15 (+1.23%)</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="stock-tile" onclick="window.location='/stock/AXISBANK'">
-                    <div class="stock-info">
-                        <span class="stock-symbol">AXISBANK</span>
-                        <span class="stock-name">Axis Bank</span>
-                    </div>
-                    <div class="stock-price-container">
-                        <div class="stock-ltp">₹1,123.45</div>
-                        <div class="stock-change positive">
-                            <i class="fas fa-caret-up"></i>
-                            <span>+18.90 (+1.71%)</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+    <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+      <div class="page-header" style="margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">
+          <i class="fas fa-star" style="color: var(--warning);"></i> Watchlist
+        </h1>
+        <p style="color: var(--text-muted);">Track NIFTY 50 stocks in real-time • Data from NSE India (Free)</p>
+      </div>
+
+      <!-- Market Summary -->
+      <section class="market-summary" id="indices-container">
+        <div class="index-card loading-skeleton" style="height: 80px;"></div>
+        <div class="index-card loading-skeleton" style="height: 80px;"></div>
+        <div class="index-card loading-skeleton" style="height: 80px;"></div>
+        <div class="index-card loading-skeleton" style="height: 80px;"></div>
+      </section>
+
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <button class="filter-btn active" data-filter="all">All Stocks</button>
+        <button class="filter-btn" data-filter="gainers">
+          <i class="fas fa-arrow-up"></i> Gainers
+        </button>
+        <button class="filter-btn" data-filter="losers">
+          <i class="fas fa-arrow-down"></i> Losers
+        </button>
+        <div style="flex: 1;"></div>
+        <div class="search-box" style="position: relative; max-width: 300px; width: 100%;">
+          <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+          <input type="text" id="search-input" placeholder="Search stocks..." 
+            style="width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; border-radius: var(--radius); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);">
         </div>
+      </div>
+
+      <!-- Stocks Grid -->
+      <section class="watchlist-grid" id="watchlist-container">
+        <!-- Loading skeletons -->
+        <div class="stock-card loading-skeleton" style="height: 180px;"></div>
+        <div class="stock-card loading-skeleton" style="height: 180px;"></div>
+        <div class="stock-card loading-skeleton" style="height: 180px;"></div>
+        <div class="stock-card loading-skeleton" style="height: 180px;"></div>
+        <div class="stock-card loading-skeleton" style="height: 180px;"></div>
+        <div class="stock-card loading-skeleton" style="height: 180px;"></div>
+      </section>
     </main>
-    
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2024 Indian AI Trader. Built with ❤️ for the Indian trading community.</p>
-        </div>
-    </footer>
-    
-    <script src="/js/app.js"></script>
+
     <script>
-        // Search functionality
-        document.getElementById('watchlist-search').addEventListener('input', function() {
-            const query = this.value.toLowerCase();
-            const tiles = document.querySelectorAll('#watchlist-grid .stock-tile');
-            
-            tiles.forEach(tile => {
-                const symbol = tile.querySelector('.stock-symbol').textContent.toLowerCase();
-                const name = tile.querySelector('.stock-name').textContent.toLowerCase();
-                
-                if (symbol.includes(query) || name.includes(query)) {
-                    tile.style.display = '';
-                } else {
-                    tile.style.display = 'none';
-                }
-            });
-        });
+      const API_BASE = '';
+      let allStocks = [];
+      let currentFilter = 'all';
+
+      // Format currency
+      function formatPrice(value) {
+        if (!value) return '₹0.00';
+        return '₹' + parseFloat(value).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+
+      // Render indices
+      function renderIndices(indices) {
+        const container = document.getElementById('indices-container');
+        if (!indices || indices.length === 0) {
+          container.innerHTML = `
+            <div class="index-card">
+              <div class="index-name">NIFTY 50</div>
+              <div class="index-value">--</div>
+              <div class="index-change">Loading...</div>
+            </div>
+          `;
+          return;
+        }
         
-        // Tab switching
-        document.querySelectorAll('.tabs .tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                // Load different watchlist based on data-list attribute
-            });
+        container.innerHTML = indices.map(idx => `
+          <div class="index-card">
+            <div class="index-name">${idx.name}</div>
+            <div class="index-value">${formatPrice(idx.value)}</div>
+            <div class="index-change ${idx.change >= 0 ? 'positive' : 'negative'}">
+              <i class="fas fa-caret-${idx.change >= 0 ? 'up' : 'down'}"></i>
+              ${idx.change >= 0 ? '+' : ''}${parseFloat(idx.change).toFixed(2)}%
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Render stocks
+      function renderStocks(stocks) {
+        const container = document.getElementById('watchlist-container');
+        
+        if (!stocks || stocks.length === 0) {
+          container.innerHTML = `
+            <div class="card" style="grid-column: 1 / -1; padding: 3rem; text-align: center;">
+              <i class="fas fa-exclamation-circle" style="font-size: 3rem; color: var(--warning); margin-bottom: 1rem;"></i>
+              <h3>Unable to load stock data</h3>
+              <p style="color: var(--text-muted);">Please check your connection and try again</p>
+              <button onclick="loadData()" class="btn btn-primary mt-md">
+                <i class="fas fa-refresh"></i> Retry
+              </button>
+            </div>
+          `;
+          return;
+        }
+
+        // Apply filter
+        let filtered = stocks;
+        if (currentFilter === 'gainers') {
+          filtered = stocks.filter(s => s.change_percent > 0).sort((a, b) => b.change_percent - a.change_percent);
+        } else if (currentFilter === 'losers') {
+          filtered = stocks.filter(s => s.change_percent < 0).sort((a, b) => a.change_percent - b.change_percent);
+        }
+
+        // Apply search
+        const searchTerm = document.getElementById('search-input').value.toLowerCase();
+        if (searchTerm) {
+          filtered = filtered.filter(s => 
+            s.symbol.toLowerCase().includes(searchTerm) || 
+            (s.name && s.name.toLowerCase().includes(searchTerm))
+          );
+        }
+
+        if (filtered.length === 0) {
+          container.innerHTML = `
+            <div class="card" style="grid-column: 1 / -1; padding: 2rem; text-align: center;">
+              <i class="fas fa-search" style="font-size: 2rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+              <p style="color: var(--text-muted);">No stocks match your criteria</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = filtered.map(stock => `
+          <div class="stock-card" onclick="showStockDetails('${stock.symbol}')">
+            <div class="stock-card-header">
+              <div>
+                <div class="stock-symbol">${stock.symbol}</div>
+                <div class="stock-name">${stock.name || stock.symbol}</div>
+              </div>
+              <div class="stock-price">
+                <div class="stock-ltp">${formatPrice(stock.ltp)}</div>
+                <div class="stock-change ${stock.change_percent >= 0 ? 'positive' : 'negative'}">
+                  <i class="fas fa-caret-${stock.change_percent >= 0 ? 'up' : 'down'}"></i>
+                  ${stock.change_percent >= 0 ? '+' : ''}${parseFloat(stock.change_percent).toFixed(2)}%
+                </div>
+              </div>
+            </div>
+            <div class="stock-metrics">
+              <div class="metric">
+                <div class="metric-label">Open</div>
+                <div class="metric-value">${formatPrice(stock.open)}</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">High</div>
+                <div class="metric-value">${formatPrice(stock.high)}</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Low</div>
+                <div class="metric-value">${formatPrice(stock.low)}</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Prev</div>
+                <div class="metric-value">${formatPrice(stock.close)}</div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Load data from API
+      async function loadData() {
+        try {
+          // Load indices
+          const indicesRes = await fetch(`${API_BASE}/api/indices`);
+          if (indicesRes.ok) {
+            const data = await indicesRes.json();
+            renderIndices(data.indices);
+          }
+        } catch (e) {
+          console.error('Indices error:', e);
+        }
+
+        try {
+          // Load watchlist
+          const watchlistRes = await fetch(`${API_BASE}/api/watchlist`);
+          if (watchlistRes.ok) {
+            const data = await watchlistRes.json();
+            allStocks = data.items || [];
+            renderStocks(allStocks);
+          } else {
+            renderStocks([]);
+          }
+        } catch (e) {
+          console.error('Watchlist error:', e);
+          renderStocks([]);
+        }
+      }
+
+      // Filter buttons
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentFilter = btn.dataset.filter;
+          renderStocks(allStocks);
         });
+      });
+
+      // Search
+      document.getElementById('search-input').addEventListener('input', () => {
+        renderStocks(allStocks);
+      });
+
+      // Stock details
+      function showStockDetails(symbol) {
+        alert(`Stock details for ${symbol} - Coming soon!`);
+      }
+
+      // Initial load
+      loadData();
+
+      // Refresh every 30 seconds
+      setInterval(loadData, 30000);
     </script>
-</body>
+  </body>
 </html>

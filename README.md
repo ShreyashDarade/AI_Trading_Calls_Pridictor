@@ -1,88 +1,94 @@
-# 🚀 Indian AI Trader
+# 🇮🇳 Indian AI Trader
 
 **AI-Powered Trading Platform for Indian Stock Markets**
 
-An intelligent, microservices-based trading platform that integrates with the Groww API to provide real-time market data, AI-generated trading signals, automated order execution, and comprehensive backtesting capabilities.
+An intelligent trading platform that provides real-time NSE market data, AI-generated trading signals, and comprehensive analysis tools. **Works for FREE with NSE India data** - no API subscription required!
+
+![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![Python](https://img.shields.io/badge/python-3.9+-green)
+![License](https://img.shields.io/badge/license-MIT-orange)
+
+---
+
+## ⚡ Quick Start
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/your-repo/indian-ai-trader.git
+cd indian-ai-trader
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Start the platform
+python scripts/run_all.py --api
+
+# 4. Open in browser
+# http://localhost:8000
+```
+
+**That's it!** No API key needed for basic functionality.
 
 ---
 
 ## 📋 Table of Contents
 
-- [Overview](#overview)
 - [Features](#features)
-- [Architecture](#architecture)
-- [Project Structure](#project-structure)
-- [Prerequisites](#prerequisites)
-- [Quick Start](#quick-start)
+- [Screenshots](#screenshots)
+- [Installation](#installation)
 - [Configuration](#configuration)
-- [Running Services](#running-services)
+- [Usage](#usage)
 - [API Documentation](#api-documentation)
-- [Frontend](#frontend)
-- [Development Roadmap](#development-roadmap)
+- [Architecture](#architecture)
+- [Service Ports](#service-ports)
+- [Development](#development)
 - [Contributing](#contributing)
 - [License](#license)
 
 ---
 
-## 🎯 Overview
-
-Indian AI Trader is a production-grade trading platform designed specifically for the Indian stock market (NSE/BSE). It combines:
-
-- **Real-time market data** from Groww's trading API
-- **AI/ML-powered signal generation** using technical indicators
-- **Automated order execution** (paper trading & live trading)
-- **Walk-forward backtesting** for strategy validation
-- **Beautiful web dashboard** for monitoring and control
-
-### Why This Project?
-
-| Problem                                 | Solution                                                 |
-| --------------------------------------- | -------------------------------------------------------- |
-| Manual trading is time-consuming        | Automated AI signals with one-click execution            |
-| Retail traders lack institutional tools | Professional-grade technical analysis & risk management  |
-| No Indian-focused AI trading platforms  | Built specifically for NSE/BSE with IST timezone support |
-| Expensive trading software              | Open-source, self-hosted, free forever                   |
-
----
-
 ## ✨ Features
 
-### 📊 Market Data
+### 📊 Free Market Data (NSE India)
 
-- Real-time quotes via Groww WebSocket feed
-- Historical OHLCV data (1m, 5m, 15m, 1h, 1d)
-- Instrument master with 5000+ symbols
-- Live tick streaming with Server-Sent Events (SSE)
+- **Real-time quotes** for NIFTY 50 stocks
+- **Market indices** (NIFTY 50, BANK NIFTY, etc.)
+- **Top gainers & losers**
+- **Stock search** functionality
+- **No API key required!**
 
 ### 🤖 AI Signal Generation
 
-- ML models (XGBoost, LightGBM, Random Forest)
+- **Two Prediction Modes:**
+  - **ML Model** - XGBoost, LightGBM, Random Forest
+  - **GPT Analysis** - OpenAI GPT-4 for advanced market analysis
 - 25+ technical indicators (RSI, MACD, Bollinger Bands, ATR, etc.)
 - Confidence scoring (0-100%)
 - Entry price, stop-loss, and target levels
 - Explainable reason codes
 
-### 📈 Trading
+### 📈 Trading (Requires Groww API)
 
 - Paper trading (simulated execution)
 - Live trading via Groww API
 - Multiple order types (Market, Limit, Stop-Loss)
 - Position tracking with real-time P&L
-- Intraday (MIS) and delivery (CNC) support
 
-### 🔄 Backtesting
+### 🔄 Advanced Backtesting
 
-- Walk-forward analysis
-- Equity curve visualization
-- Performance metrics (Sharpe, Sortino, Max Drawdown)
+- Interactive equity curve charts
+- Monthly returns visualization
+- Win/Loss distribution pie charts
+- Drawdown analysis
 - Trade-by-trade logs
+- Support for both ML and GPT strategies
 
-### 🛡️ Risk Management
+### 🌐 Modern Web Dashboard
 
-- Position sizing algorithms (Fixed %, Kelly Criterion, ATR-based)
-- Maximum exposure limits
-- Daily loss limits
-- Drawdown protection
+- Dark theme with glassmorphism design
+- Responsive layout (mobile-friendly)
+- Real-time price updates via SSE
+- Interactive charts
 
 ### 🔔 Notifications
 
@@ -90,48 +96,168 @@ Indian AI Trader is a production-grade trading platform designed specifically fo
 - Slack integration
 - Webhook support
 
+## 📦 Installation
+
+### Prerequisites
+
+- Python 3.9 or higher
+- pip (Python package manager)
+- Modern web browser
+
+### Step-by-Step
+
+```bash
+# Clone the repo
+git clone https://github.com/your-repo/indian-ai-trader.git
+cd indian-ai-trader
+
+# Create virtual environment (recommended)
+python -m venv venv
+
+# Activate virtual environment
+# Windows:
+venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Copy environment file
+cp .env.example .env
+```
+
+### Required Python Packages
+
+```
+fastapi>=0.100.0
+uvicorn>=0.23.0
+httpx>=0.24.0
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+```
+
+---
+
+## ⚙️ Configuration
+
+### Environment Variables
+
+Copy `.env.example` to `.env` and configure:
+
+```bash
+# For FREE NSE data (no API key needed)
+# Just start the server!
+
+# For Groww Trading API (₹499/month)
+GROWW_API_KEY=your_jwt_token_here
+GROWW_ACCESS_TOKEN=your_jwt_token_here
+
+# Trading settings
+TRADING_MODE=PAPER          # PAPER or LIVE
+MAX_POSITION_SIZE_PCT=5     # Max 5% per position
+MAX_DAILY_LOSS_PCT=3        # Stop at 3% daily loss
+MIN_SIGNAL_CONFIDENCE=0.6   # Minimum 60% confidence
+```
+
+### Data Sources
+
+| Source                   | Cost       | Features                            |
+| ------------------------ | ---------- | ----------------------------------- |
+| **NSE India** (Default)  | **FREE**   | Real-time quotes, NIFTY 50, indices |
+| **Groww API** (Optional) | ₹499/month | Trading, portfolio, historical data |
+
+---
+
+## 🚀 Usage
+
+### Start the Platform
+
+```bash
+# Start only API Gateway (recommended for most users)
+python scripts/run_all.py --api
+
+# Start all services
+python scripts/run_all.py
+
+# Start specific services
+python scripts/run_all.py api-gateway signal-service
+```
+
+### Web Dashboard
+
+Open in browser: **http://localhost:8000**
+
+| Page      | URL          | Description                                |
+| --------- | ------------ | ------------------------------------------ |
+| Dashboard | `/`          | Main overview with portfolio and watchlist |
+| Watchlist | `/watchlist` | NIFTY 50 stocks with real-time prices      |
+| Signals   | `/signals`   | AI-generated trading signals               |
+| Backtests | `/backtests` | Strategy backtesting                       |
+| Settings  | `/settings`  | API configuration                          |
+
+### API Endpoints
+
+| Endpoint                  | Method | Description                 |
+| ------------------------- | ------ | --------------------------- |
+| `/api/health`             | GET    | Health check                |
+| `/api/watchlist`          | GET    | NIFTY 50 stocks with prices |
+| `/api/quote/{symbol}`     | GET    | Get quote for a symbol      |
+| `/api/quotes?symbols=...` | GET    | Get multiple quotes         |
+| `/api/indices`            | GET    | Major market indices        |
+| `/api/gainers-losers`     | GET    | Top gainers and losers      |
+| `/api/signals/latest`     | GET    | Latest AI signals           |
+| `/api/market/status`      | GET    | Market open/closed status   |
+
 ---
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         FRONTEND                                 │
-│                    (HTML/CSS/JavaScript)                         │
-│                   Dashboard • Watchlist • Signals                │
-└─────────────────────────┬───────────────────────────────────────┘
-                          │ HTTP/SSE
-┌─────────────────────────▼───────────────────────────────────────┐
-│                      API GATEWAY                                 │
-│                    (FastAPI - BFF)                               │
-│              Aggregation • Auth • Rate Limiting                  │
-└─────────────────────────┬───────────────────────────────────────┘
-                          │
-        ┌─────────────────┼─────────────────┐
-        │                 │                 │
-        ▼                 ▼                 ▼
-┌───────────────┐ ┌───────────────┐ ┌───────────────┐
-│   Signal      │ │   Portfolio   │ │    Order      │
-│   Service     │ │   Service     │ │   Service     │
-└───────┬───────┘ └───────────────┘ └───────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                      WEB BROWSER                              │
+│                 (Dashboard, Watchlist, Signals)               │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     API GATEWAY                               │
+│                    (Port 8000)                                │
+│  • Serves frontend                                            │
+│  • Aggregates data from services                              │
+│  • SSE streaming for real-time updates                        │
+└─────────────────────────────────────────────────────────────┘
+        │                     │                     │
+        ▼                     ▼                     ▼
+┌───────────────┐   ┌───────────────┐   ┌───────────────┐
+│  NSE DATA     │   │ SIGNAL        │   │ BACKTEST      │
+│  (Free)       │   │ SERVICE       │   │ SERVICE       │
+│  Port 8020    │   │ Port 8005     │   │ Port 8006     │
+└───────────────┘   └───────────────┘   └───────────────┘
         │
         ▼
-┌───────────────┐ ┌───────────────┐ ┌───────────────┐
-│   Feature     │ │   Market      │ │   Backtest    │
-│   Service     │ │   Ingestor    │ │   Service     │
-└───────────────┘ └───────┬───────┘ └───────────────┘
-                          │
-                          ▼
-                   ┌─────────────┐
-                   │  Groww API  │
-                   └─────────────┘
-
-┌─────────────────────────────────────────────────────────────────┐
-│                      DATA LAYER                                  │
-│   PostgreSQL (transactional) • ClickHouse (time-series)         │
-│   Redis (cache) • Redpanda (event streaming)                    │
-└─────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────┐
+│                   NSE INDIA WEBSITE                         │
+│              (Free real-time market data)                   │
+└───────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 🔌 Service Ports
+
+| Service              | Port | Description              |
+| -------------------- | ---- | ------------------------ |
+| API Gateway          | 8000 | Main web server & API    |
+| NSE Data             | 8020 | Free NSE market data     |
+| Instrument Service   | 8001 | Stock instruments        |
+| Market Ingestor      | 8002 | Real-time data ingestion |
+| Feature Service      | 8004 | Technical indicators     |
+| Signal Service       | 8005 | AI trading signals       |
+| Backtest Service     | 8006 | Strategy backtesting     |
+| Portfolio Service    | 8007 | Portfolio management     |
+| Order Service        | 8008 | Order execution          |
+| Notification Service | 8010 | Email/Slack alerts       |
 
 ---
 
@@ -140,342 +266,85 @@ Indian AI Trader is a production-grade trading platform designed specifically fo
 ```
 indian-ai-trader/
 ├── apps/
-│   ├── api-gateway/           # Unified API gateway (FastAPI)
+│   ├── api-gateway/          # Main API server & frontend
 │   │   └── src/main.py
-│   └── web/                   # Frontend dashboard
-│       ├── index.html         # Main dashboard
-│       ├── css/               # Stylesheets
-│       ├── js/                # JavaScript
-│       └── pages/             # Additional pages
-│
+│   └── web/                  # Frontend HTML/CSS/JS
+│       ├── index.html
+│       ├── css/
+│       ├── js/
+│       └── pages/
 ├── services/
-│   ├── instrument-service/    # Symbol/token mapping
-│   ├── market-ingestor/       # Real-time data ingestion
-│   ├── bar-aggregator/        # Tick → OHLCV aggregation
-│   ├── market-store/          # ClickHouse storage
-│   ├── feature-service/       # Technical indicators
-│   ├── signal-service/        # AI signal generation
-│   ├── backtest-service/      # Strategy backtesting
-│   ├── portfolio-service/     # Position & P&L tracking
-│   ├── order-service/         # Order execution
-│   ├── notification-service/  # Alerts (email, Slack)
-│   ├── audit-service/         # Decision logging
-│   └── model-training/        # ML model training
-│
-├── libs/
-│   ├── common/                # Shared utilities, schemas, config
-│   ├── groww-client/          # Groww API client library
-│   ├── indicators/            # Technical analysis indicators
-│   └── risk/                  # Risk management algorithms
-│
-├── infra/
-│   ├── docker/
-│   │   ├── docker-compose.yml # Full infrastructure stack
-│   │   └── init-scripts/      # Database initialization
-│   └── observability/
-│       └── prometheus.yml     # Metrics configuration
-│
-├── docs/
-│   ├── architecture.md        # System design documentation
-│   └── api-contracts.md       # API endpoint specifications
-│
+│   ├── nse-data/             # Free NSE data service
+│   ├── signal-service/       # AI signal generation
+│   ├── backtest-service/     # Strategy backtesting
+│   └── ...
 ├── scripts/
-│   └── run_all.py             # Start all services locally
-│
-├── .env.example               # Environment variables template
-├── pyproject.toml             # Python project configuration
-├── requirements.txt           # Python dependencies
-└── README.md                  # This file
+│   ├── run_all.py            # Start all services
+│   └── test_groww_api.py     # Test API credentials
+├── .env.example              # Example configuration
+├── requirements.txt          # Python dependencies
+└── README.md                 # This file
 ```
 
 ---
 
-## 📋 Prerequisites
+## 🛠️ Development
 
-### Required
-
-- **Python 3.11+**
-- **Docker & Docker Compose** (for infrastructure)
-- **Groww Trading Account** with API access
-
-### Recommended
-
-- **8GB+ RAM** (for running all services + databases)
-- **SSD storage** (for ClickHouse performance)
-
----
-
-## 🚀 Quick Start
-
-### 1. Clone the Repository
+### Running in Development Mode
 
 ```bash
-git clone https://github.com/ShreyashDarade/indian-ai-trader.git
-cd indian-ai-trader
-```
-
-### 2. Set Up Environment Variables
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` with your credentials:
-
-```env
-# REQUIRED: Groww API credentials
-GROWW_API_KEY=your_api_key_here
-GROWW_ACCESS_TOKEN=your_access_token_here
-
-# Database (Docker defaults)
-POSTGRES_PASSWORD=your_secure_password
-CLICKHOUSE_PASSWORD=your_secure_password
-REDIS_PASSWORD=your_secure_password
-```
-
-### 3. Start Infrastructure
-
-```bash
-cd infra/docker
-docker-compose up -d
-```
-
-This starts:
-
-- **PostgreSQL** (port 5432) - Transactional data
-- **ClickHouse** (port 9000) - Time-series data
-- **Redis** (port 6379) - Caching
-- **Redpanda** (port 9092) - Event streaming
-- **Prometheus** (port 9090) - Metrics
-- **Grafana** (port 3000) - Dashboards
-
-### 4. Install Python Dependencies
-
-```bash
-# Create virtual environment (recommended)
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# or
-.\venv\Scripts\activate   # Windows
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### 5. Run the API Gateway
-
-```bash
+# Start with auto-reload
 cd apps/api-gateway
-uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+python -m uvicorn src.main:app --reload --port 8000
 ```
 
-### 6. Open the Dashboard
-
-Navigate to: **http://localhost:8000**
-
----
-
-## ⚙️ Configuration
-
-### Environment Variables
-
-| Variable                | Description                        | Default    |
-| ----------------------- | ---------------------------------- | ---------- |
-| `GROWW_API_KEY`         | Your Groww API key                 | (required) |
-| `GROWW_ACCESS_TOKEN`    | Groww access token (refresh daily) | (required) |
-| `POSTGRES_HOST`         | PostgreSQL hostname                | localhost  |
-| `CLICKHOUSE_HOST`       | ClickHouse hostname                | localhost  |
-| `REDIS_HOST`            | Redis hostname                     | localhost  |
-| `TRADING_MODE`          | `PAPER` or `LIVE`                  | PAPER      |
-| `MIN_SIGNAL_CONFIDENCE` | Minimum confidence for signals     | 0.6        |
-| `MAX_POSITION_SIZE_PCT` | Max single position size (%)       | 5          |
-| `MAX_DAILY_LOSS_PCT`    | Max daily loss before pause (%)    | 3          |
-
-### Getting Groww API Credentials
-
-1. Create a Groww trading account at [groww.in](https://groww.in)
-2. Apply for API access at their developer portal
-3. Generate API key and access token
-4. Access token expires daily - refresh before market open
-
----
-
-## 🖥️ Running Services
-
-### Option 1: Run All Services (Development)
+### Testing API Credentials
 
 ```bash
-python scripts/run_all.py
+# Install growwapi package
+pip install growwapi
+
+# Test your Groww API credentials
+python scripts/test_groww_api.py
 ```
 
-This starts all services on their respective ports.
+### Adding a New Service
 
-### Option 2: Run Individual Services
-
-```bash
-# API Gateway (port 8000)
-cd apps/api-gateway && uvicorn src.main:app --reload --port 8000
-
-# Signal Service (port 8005)
-cd services/signal-service && uvicorn src.main:app --reload --port 8005
-
-# Portfolio Service (port 8007)
-cd services/portfolio-service && uvicorn src.main:app --reload --port 8007
-```
-
-### Service Ports
-
-| Service              | Port | Health Check  |
-| -------------------- | ---- | ------------- |
-| API Gateway          | 8000 | `/api/health` |
-| Instrument Service   | 8001 | `/health`     |
-| Market Ingestor      | 8002 | `/health`     |
-| Bar Aggregator       | 8003 | `/health`     |
-| Feature Service      | 8004 | `/health`     |
-| Signal Service       | 8005 | `/health`     |
-| Backtest Service     | 8006 | `/health`     |
-| Portfolio Service    | 8007 | `/health`     |
-| Market Store         | 8008 | `/health`     |
-| Order Service        | 8009 | `/health`     |
-| Notification Service | 8010 | `/health`     |
-| Audit Service        | 8011 | `/health`     |
-| Model Training       | 8012 | `/health`     |
+1. Create service directory: `services/my-service/src/`
+2. Create `main.py` with FastAPI app
+3. Create `__init__.py`
+4. Add to `run_all.py` SERVICES dict
+5. Run: `python scripts/run_all.py my-service`
 
 ---
 
-## � API Documentation
+## 🔐 Security Notes
 
-### Interactive Docs
-
-Each service has auto-generated API docs:
-
-- **API Gateway**: http://localhost:8000/docs
-- **Signal Service**: http://localhost:8005/docs
-- **Portfolio Service**: http://localhost:8007/docs
-
-### Key Endpoints
-
-```
-# Market Data
-GET  /api/quotes?symbols=RELIANCE,TCS,INFY
-GET  /api/quote/NSE/RELIANCE
-GET  /api/candles/NSE/RELIANCE?interval=15minute
-
-# Signals
-GET  /api/signals/latest?limit=10&min_confidence=0.7
-POST /api/signals/generate {"symbol": "RELIANCE", "timeframe": "15m"}
-
-# Portfolio
-GET  /api/portfolio
-GET  /api/positions
-GET  /api/orders
-
-# Orders (Paper Trading)
-POST /api/orders {
-  "symbol": "RELIANCE",
-  "transaction_type": "BUY",
-  "quantity": 10,
-  "order_type": "MARKET",
-  "mode": "PAPER"
-}
-
-# SSE Streaming
-GET  /api/stream (Server-Sent Events for live prices)
-```
+- **NEVER commit `.env` file** - it's gitignored
+- Use `.env.example` as template
+- Generate strong JWT secrets for production
+- Enable HTTPS in production
+- Use paper trading mode first
 
 ---
 
-## 🎨 Frontend
+## 🗺️ Roadmap
 
-The web dashboard provides:
-
-| Page      | URL                     | Features                               |
-| --------- | ----------------------- | -------------------------------------- |
-| Dashboard | `/`                     | Portfolio overview, signals, watchlist |
-| Watchlist | `/pages/watchlist.html` | Real-time stock grid                   |
-| Signals   | `/pages/signals.html`   | AI signal browser with filters         |
-| Backtests | `/pages/backtests.html` | Run and analyze backtests              |
-| Settings  | `/pages/settings.html`  | API config, risk settings              |
-
-### Tech Stack
-
-- **HTML5** - Semantic markup
-- **CSS3** - Custom properties, glassmorphism, animations
-- **Vanilla JavaScript** - No framework dependencies
-- **Server-Sent Events** - Real-time updates
-
----
-
-## 🗺️ Development Roadmap
-
-### ✅ Phase 1: Foundation (Completed)
-
-- [x] Microservices architecture
-- [x] Groww API integration
-- [x] Technical indicator library
-- [x] Basic web dashboard
-- [x] Paper trading support
-
-### 🔄 Phase 2: Intelligence (In Progress)
-
-- [ ] Train production ML models
-- [ ] Feature store with historical data
-- [ ] Sentiment analysis (news, social)
-- [ ] Options trading support
-
-### 📅 Phase 3: Production (Planned)
-
-- [ ] Live trading with safety guards
-- [ ] Mobile app (React Native)
+- [x] NSE India free data integration
+- [x] NIFTY 50 watchlist
+- [x] Real-time price updates (SSE)
+- [x] Modern dark theme dashboard
+- [x] Backtesting interface
+- [ ] AI signal generation
+- [ ] Groww API trading
+- [ ] Portfolio tracking
+- [ ] Mobile responsive improvements
+- [ ] Push notifications
 - [ ] Multi-broker support (Zerodha, Upstox)
-- [ ] Kubernetes deployment
-- [ ] CI/CD pipeline
-
-### 🔮 Phase 4: Advanced (Future)
-
-- [ ] Reinforcement learning strategies
-- [ ] Portfolio optimization
-- [ ] Social trading features
-- [ ] Regulatory compliance (SEBI)
 
 ---
 
-## 🛠️ What to Add
-
-### Immediate Priorities
-
-1. **Groww API Authentication**
-
-   - Implement OAuth2 flow
-   - Auto-refresh access token
-
-2. **Database Migrations**
-
-   - Alembic for PostgreSQL
-   - Version control for schemas
-
-3. **Model Training Pipeline**
-
-   - Collect historical data
-   - Feature engineering notebook
-   - Train XGBoost/LightGBM models
-
-4. **Testing**
-   - Unit tests for indicators
-   - Integration tests for services
-   - End-to-end tests for trading flow
-
-### Nice to Have
-
-- Advanced charting (TradingView widget)
-- Telegram bot for alerts
-- Strategy builder (no-code)
-- Performance analytics dashboard
-- Export trades to Excel/CSV
-
----
-
-## 👥 Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Please:
 
@@ -485,24 +354,9 @@ Contributions are welcome! Please:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-### Development Setup
-
-```bash
-# Install dev dependencies
-pip install -e ".[dev]"
-
-# Run linting
-black .
-isort .
-mypy .
-
-# Run tests
-pytest
-```
-
 ---
 
-## � License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
@@ -510,24 +364,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## ⚠️ Disclaimer
 
-**This software is for educational purposes only.**
-
-- Trading in financial markets involves substantial risk of loss
-- Past performance is not indicative of future results
-- The developers are not liable for any financial losses
-- Always consult a qualified financial advisor before trading
-- This is NOT investment advice
+This software is for educational and research purposes only. Trading stocks involves significant risk of loss. The creators of this software are not responsible for any financial losses incurred from using this platform. Always do your own research before making trading decisions.
 
 ---
 
-## 📞 Support
+## 🙏 Acknowledgments
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/indian-ai-trader/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/indian-ai-trader/discussions)
-- **Email**: support@example.com
+- [NSE India](https://www.nseindia.com/) for market data
+- [FastAPI](https://fastapi.tiangolo.com/) for the awesome framework
+- [Groww](https://groww.in/) for trading API
 
 ---
 
-<p align="center">
-  <b>Built with ❤️ for the Indian Trading Community</b>
-</p>
+**Made with ❤️ for the Indian Trading Community**

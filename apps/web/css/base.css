@@ -64,6 +64,16 @@
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease;
   --transition-slow: 400ms ease;
+
+  /* Aliases for compatibility */
+  --primary: var(--accent-primary);
+  --secondary: var(--accent-secondary);
+  --success: var(--color-success);
+  --danger: var(--color-danger);
+  --warning: var(--color-warning);
+  --info: var(--color-info);
+  --radius: var(--radius-md);
+  --radius-lg: 0.75rem;
 }
 
 /* Reset */

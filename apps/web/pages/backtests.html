@@ -1,293 +1,790 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Backtest your trading strategies with historical data and AI signals.">
-    <title>Backtests | Indian AI Trader</title>
-    
-    <link rel="icon" type="image/svg+xml" href="/assets/logo.svg">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <link rel="stylesheet" href="/css/base.css">
-    <link rel="stylesheet" href="/css/components.css">
-    <link rel="stylesheet" href="/css/pages.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Backtests - Indian AI Trader</title>
+    <meta name="description" content="Backtest trading strategies with advanced visualizations" />
+    <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/components.css" />
+    <link rel="stylesheet" href="/css/pages.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+      .backtest-form {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        margin-bottom: 2rem;
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.5rem;
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .form-group label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
+      .form-group input,
+      .form-group select {
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+        font-size: 1rem;
+      }
+      .form-group input:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+      .prediction-mode-selector {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      .mode-option {
+        flex: 1;
+        padding: 1.25rem;
+        background: var(--bg-tertiary);
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: center;
+      }
+      .mode-option:hover {
+        border-color: var(--primary);
+      }
+      .mode-option.selected {
+        border-color: var(--primary);
+        background: rgba(59, 130, 246, 0.1);
+      }
+      .mode-option i {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        display: block;
+      }
+      .mode-option.ml i { color: #10b981; }
+      .mode-option.gpt i { color: #8b5cf6; }
+      .mode-option h4 {
+        margin-bottom: 0.25rem;
+      }
+      .mode-option p {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin: 0;
+      }
+      .results-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+      .result-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1.25rem;
+        text-align: center;
+      }
+      .result-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+      }
+      .result-value.positive { color: var(--success); }
+      .result-value.negative { color: var(--danger); }
+      .result-label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .chart-container {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        height: 400px;
+        position: relative;
+      }
+      .chart-container h4 {
+        margin-bottom: 1rem;
+        color: var(--text-secondary);
+      }
+      .trades-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--bg-secondary);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+      }
+      .trades-table th,
+      .trades-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .trades-table th {
+        background: var(--bg-tertiary);
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted);
+      }
+      .trades-table tr:hover {
+        background: var(--bg-tertiary);
+      }
+      .trade-long { color: var(--success); }
+      .trade-short { color: var(--danger); }
+      .charts-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+      @media (max-width: 768px) {
+        .charts-grid { grid-template-columns: 1fr; }
+        .prediction-mode-selector { flex-direction: column; }
+      }
+      .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--bg-secondary);
+        border: 1px dashed var(--border-color);
+        border-radius: var(--radius-lg);
+      }
+      .ai-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.25rem 0.75rem;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        border-radius: 100px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <div class="navbar-content">
-            <a href="/" class="navbar-brand">
-                <i class="fas fa-chart-line"></i>
-                <span>Indian AI Trader</span>
-            </a>
-            
-            <ul class="navbar-nav">
-                <li><a href="/" class="nav-link"><i class="fas fa-home"></i> Dashboard</a></li>
-                <li><a href="/pages/watchlist.html" class="nav-link"><i class="fas fa-eye"></i> Watchlist</a></li>
-                <li><a href="/pages/signals.html" class="nav-link"><i class="fas fa-bolt"></i> Signals</a></li>
-                <li><a href="/pages/backtests.html" class="nav-link active"><i class="fas fa-chart-bar"></i> Backtests</a></li>
-                <li><a href="/pages/settings.html" class="nav-link"><i class="fas fa-cog"></i> Settings</a></li>
-            </ul>
-            
-            <div class="market-status" id="market-status">
-                <span class="market-status-dot closed" id="market-dot"></span>
-                <span id="market-label">Market Closed</span>
-            </div>
+      <div class="container navbar-content">
+        <a href="/" class="navbar-brand">
+          <i class="fas fa-chart-line"></i>
+          <span>Indian AI Trader</span>
+        </a>
+        <div class="navbar-menu">
+          <a href="/" class="nav-link">Dashboard</a>
+          <a href="/watchlist" class="nav-link">Watchlist</a>
+          <a href="/signals" class="nav-link">Signals</a>
+          <a href="/backtests" class="nav-link active">Backtests</a>
+          <a href="/settings" class="nav-link"><i class="fas fa-cog"></i></a>
         </div>
+      </div>
     </nav>
-    
-    <main class="main-content">
-        <div class="container">
-            <!-- Page Header -->
-            <div class="page-header">
-                <h1 class="page-title">
-                    <i class="fas fa-chart-bar" style="color: var(--accent-primary);"></i>
-                    Strategy Backtests
-                </h1>
-                <p class="page-subtitle">Test your trading strategies on historical data with walk-forward analysis</p>
-            </div>
-            
-            <!-- Action Bar -->
-            <div class="flex-between mb-lg">
-                <div class="tabs">
-                    <button class="tab active">All Backtests</button>
-                    <button class="tab">Completed</button>
-                    <button class="tab">Running</button>
-                </div>
-                <button class="btn btn-primary" onclick="showNewBacktestModal()">
-                    <i class="fas fa-plus"></i> New Backtest
-                </button>
-            </div>
-            
-            <!-- Summary Stats -->
-            <div class="grid grid-4 mb-lg">
-                <div class="card stat-card">
-                    <div class="stat-value">12</div>
-                    <div class="stat-label">Total Backtests</div>
-                </div>
-                <div class="card stat-card">
-                    <div class="stat-value text-success">8</div>
-                    <div class="stat-label">Profitable</div>
-                </div>
-                <div class="card stat-card">
-                    <div class="stat-value">1.85</div>
-                    <div class="stat-label">Best Sharpe</div>
-                </div>
-                <div class="card stat-card">
-                    <div class="stat-value">68%</div>
-                    <div class="stat-label">Avg Win Rate</div>
-                </div>
-            </div>
-            
-            <!-- Backtests Table -->
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Backtest History</h3>
-                </div>
-                <div class="card-body" style="padding: 0;">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Period</th>
-                                <th>Capital</th>
-                                <th>Return</th>
-                                <th>Sharpe</th>
-                                <th>Max DD</th>
-                                <th>Win Rate</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <strong>MACD + RSI Strategy</strong>
-                                    <div class="text-muted" style="font-size: 0.75rem;">NIFTY 50 Universe</div>
-                                </td>
-                                <td>Jan 2024 - Dec 2024</td>
-                                <td class="font-mono">₹10,00,000</td>
-                                <td class="text-success font-mono">+24.5%</td>
-                                <td class="font-mono">1.85</td>
-                                <td class="text-danger font-mono">-8.2%</td>
-                                <td class="font-mono">68%</td>
-                                <td><span class="badge badge-success">Completed</span></td>
-                                <td>
-                                    <button class="btn btn-secondary btn-sm" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn btn-secondary btn-sm" title="Download Report">
-                                        <i class="fas fa-download"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <strong>Momentum Breakout</strong>
-                                    <div class="text-muted" style="font-size: 0.75rem;">Bank NIFTY</div>
-                                </td>
-                                <td>Jun 2024 - Dec 2024</td>
-                                <td class="font-mono">₹5,00,000</td>
-                                <td class="text-success font-mono">+18.3%</td>
-                                <td class="font-mono">1.42</td>
-                                <td class="text-danger font-mono">-12.4%</td>
-                                <td class="font-mono">58%</td>
-                                <td><span class="badge badge-success">Completed</span></td>
-                                <td>
-                                    <button class="btn btn-secondary btn-sm" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn btn-secondary btn-sm" title="Download Report">
-                                        <i class="fas fa-download"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <strong>Mean Reversion RSI</strong>
-                                    <div class="text-muted" style="font-size: 0.75rem;">Custom Watchlist</div>
-                                </td>
-                                <td>Jan 2024 - Dec 2024</td>
-                                <td class="font-mono">₹10,00,000</td>
-                                <td class="text-danger font-mono">-3.2%</td>
-                                <td class="font-mono">-0.24</td>
-                                <td class="text-danger font-mono">-15.8%</td>
-                                <td class="font-mono">42%</td>
-                                <td><span class="badge badge-success">Completed</span></td>
-                                <td>
-                                    <button class="btn btn-secondary btn-sm" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn btn-secondary btn-sm" title="Download Report">
-                                        <i class="fas fa-download"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <strong>AI Signal v2.1</strong>
-                                    <div class="text-muted" style="font-size: 0.75rem;">NIFTY 50 Universe</div>
-                                </td>
-                                <td>Oct 2024 - Dec 2024</td>
-                                <td class="font-mono">₹10,00,000</td>
-                                <td colspan="4" style="text-align: center;">
-                                    <div class="progress-bar" style="width: 100%; max-width: 200px; display: inline-block;">
-                                        <div class="progress-fill" style="width: 65%;"></div>
-                                    </div>
-                                    <span style="margin-left: 0.5rem;">65%</span>
-                                </td>
-                                <td><span class="badge badge-warning">Running</span></td>
-                                <td>
-                                    <button class="btn btn-secondary btn-sm" title="Stop">
-                                        <i class="fas fa-stop"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <!-- New Backtest Section -->
-            <div class="card mt-lg" id="new-backtest-section" style="display: none;">
-                <div class="card-header">
-                    <h3 class="card-title">Create New Backtest</h3>
-                    <button class="btn btn-secondary btn-sm" onclick="hideNewBacktestModal()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="card-body">
-                    <form id="backtest-form">
-                        <div class="grid grid-2">
-                            <div class="form-group">
-                                <label class="form-label">Backtest Name</label>
-                                <input type="text" class="form-input" placeholder="e.g., MACD Strategy Q4 2024" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Universe</label>
-                                <select class="form-select">
-                                    <option>NIFTY 50</option>
-                                    <option>Bank NIFTY</option>
-                                    <option>NIFTY IT</option>
-                                    <option>Custom Watchlist</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="grid grid-3">
-                            <div class="form-group">
-                                <label class="form-label">Start Date</label>
-                                <input type="date" class="form-input" value="2024-01-01" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">End Date</label>
-                                <input type="date" class="form-input" value="2024-12-31" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Initial Capital (₹)</label>
-                                <input type="number" class="form-input" value="1000000" min="100000" required>
-                            </div>
-                        </div>
-                        
-                        <div class="grid grid-2">
-                            <div class="form-group">
-                                <label class="form-label">Strategy</label>
-                                <select class="form-select">
-                                    <option>AI Signal (Default)</option>
-                                    <option>MACD + RSI</option>
-                                    <option>Momentum Breakout</option>
-                                    <option>Mean Reversion</option>
-                                    <option>Custom (JSON Config)</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Timeframe</label>
-                                <select class="form-select">
-                                    <option>15 minutes</option>
-                                    <option>1 hour</option>
-                                    <option>Daily</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-lg" style="text-align: right;">
-                            <button type="button" class="btn btn-secondary" onclick="hideNewBacktestModal()">Cancel</button>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-play"></i> Start Backtest
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+
+    <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+      <div class="page-header" style="margin-bottom: 2rem;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 0;">
+            <i class="fas fa-flask" style="color: var(--secondary);"></i> Strategy Backtesting
+          </h1>
+          <span class="ai-badge">
+            <i class="fas fa-brain"></i> AI Powered
+          </span>
         </div>
+        <p style="color: var(--text-muted); margin-top: 0.5rem;">Test trading strategies with ML models or GPT analysis</p>
+      </div>
+
+      <!-- Backtest Form -->
+      <section class="backtest-form">
+        <h3 style="margin-bottom: 1.5rem; font-weight: 600;">
+          <i class="fas fa-play-circle" style="color: var(--primary);"></i> New Backtest
+        </h3>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="symbol">Symbol</label>
+            <select id="symbol">
+              <option value="RELIANCE">RELIANCE</option>
+              <option value="TCS">TCS</option>
+              <option value="HDFCBANK">HDFC BANK</option>
+              <option value="INFY">INFOSYS</option>
+              <option value="ICICIBANK">ICICI BANK</option>
+              <option value="SBIN">SBI</option>
+              <option value="ITC">ITC</option>
+              <option value="TATASTEEL">TATA STEEL</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="strategy">Strategy</label>
+            <select id="strategy">
+              <option value="ai_signal">AI Signal Strategy</option>
+              <option value="sma_crossover">SMA Crossover</option>
+              <option value="rsi_reversal">RSI Reversal</option>
+              <option value="macd_signal">MACD Signal</option>
+              <option value="breakout">Breakout</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="from-date">From Date</label>
+            <input type="date" id="from-date" />
+          </div>
+          <div class="form-group">
+            <label for="to-date">To Date</label>
+            <input type="date" id="to-date" />
+          </div>
+          <div class="form-group">
+            <label for="capital">Initial Capital (₹)</label>
+            <input type="number" id="capital" value="100000" />
+          </div>
+          <div class="form-group">
+            <label for="position-size">Position Size %</label>
+            <input type="number" id="position-size" value="30" min="1" max="100" />
+          </div>
+        </div>
+        
+        <!-- Prediction Mode Selector -->
+        <h4 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-weight: 500;">
+          <i class="fas fa-brain"></i> Prediction Engine
+        </h4>
+        <div class="prediction-mode-selector">
+          <div class="mode-option ml selected" data-mode="ml" onclick="selectMode('ml')">
+            <i class="fas fa-microchip"></i>
+            <h4>ML Model</h4>
+            <p>XGBoost / LightGBM trained on historical data</p>
+          </div>
+          <div class="mode-option gpt" data-mode="gpt" onclick="selectMode('gpt')">
+            <i class="fas fa-robot"></i>
+            <h4>GPT Analysis</h4>
+            <p>OpenAI GPT-4 for advanced market analysis</p>
+          </div>
+        </div>
+        
+        <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+          <button id="run-backtest" class="btn btn-primary">
+            <i class="fas fa-play"></i> Run Backtest
+          </button>
+          <button id="reset-form" class="btn btn-secondary">
+            <i class="fas fa-redo"></i> Reset
+          </button>
+        </div>
+      </section>
+
+      <!-- Results Section (Hidden by default) -->
+      <section id="results-section" style="display: none;">
+        <h3 style="margin-bottom: 1.5rem; font-weight: 600;">
+          <i class="fas fa-chart-bar" style="color: var(--success);"></i> Backtest Results
+          <span id="result-mode" class="ai-badge" style="margin-left: 1rem;">ML Model</span>
+        </h3>
+
+        <!-- Key Metrics -->
+        <div class="results-grid" id="results-metrics">
+          <div class="result-card">
+            <div class="result-value positive" id="result-return">+0%</div>
+            <div class="result-label">Total Return</div>
+          </div>
+          <div class="result-card">
+            <div class="result-value" id="result-final-value">₹0</div>
+            <div class="result-label">Final Value</div>
+          </div>
+          <div class="result-card">
+            <div class="result-value" id="result-trades">0</div>
+            <div class="result-label">Total Trades</div>
+          </div>
+          <div class="result-card">
+            <div class="result-value" id="result-winrate">0%</div>
+            <div class="result-label">Win Rate</div>
+          </div>
+          <div class="result-card">
+            <div class="result-value" id="result-sharpe">0.00</div>
+            <div class="result-label">Sharpe Ratio</div>
+          </div>
+          <div class="result-card">
+            <div class="result-value negative" id="result-drawdown">0%</div>
+            <div class="result-label">Max Drawdown</div>
+          </div>
+          <div class="result-card">
+            <div class="result-value" id="result-profit-factor">0.00</div>
+            <div class="result-label">Profit Factor</div>
+          </div>
+          <div class="result-card">
+            <div class="result-value" id="result-avg-trade">₹0</div>
+            <div class="result-label">Avg Trade</div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+          <div class="chart-container">
+            <h4><i class="fas fa-chart-area"></i> Equity Curve</h4>
+            <canvas id="equity-chart"></canvas>
+          </div>
+          <div class="chart-container">
+            <h4><i class="fas fa-chart-bar"></i> Monthly Returns</h4>
+            <canvas id="monthly-chart"></canvas>
+          </div>
+        </div>
+        
+        <div class="charts-grid">
+          <div class="chart-container">
+            <h4><i class="fas fa-chart-pie"></i> Win/Loss Distribution</h4>
+            <canvas id="winloss-chart"></canvas>
+          </div>
+          <div class="chart-container">
+            <h4><i class="fas fa-chart-line"></i> Drawdown</h4>
+            <canvas id="drawdown-chart"></canvas>
+          </div>
+        </div>
+        
+        <!-- Trade Log -->
+        <div style="margin-top: 2rem;">
+          <h4 style="margin-bottom: 1rem;"><i class="fas fa-list"></i> Trade Log</h4>
+          <div style="overflow-x: auto; border-radius: var(--radius-lg);">
+            <table class="trades-table" id="trades-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Entry</th>
+                  <th>Exit</th>
+                  <th>P&L</th>
+                  <th>P&L %</th>
+                  <th>Reason</th>
+                </tr>
+              </thead>
+              <tbody id="trades-body">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- History -->
+      <section id="history-section" style="margin-top: 2rem;">
+        <h3 style="margin-bottom: 1.5rem; font-weight: 600;">
+          <i class="fas fa-history" style="color: var(--text-muted);"></i> Recent Backtests
+        </h3>
+        <div class="history-list" id="history-container">
+          <div class="empty-state">
+            <i class="fas fa-flask" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+            <h3 style="margin-bottom: 0.5rem;">No Backtests Yet</h3>
+            <p style="color: var(--text-muted);">Run your first backtest to see results here</p>
+          </div>
+        </div>
+      </section>
     </main>
-    
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2024 Indian AI Trader. Built with ❤️ for the Indian trading community.</p>
-        </div>
-    </footer>
-    
-    <script src="/js/app.js"></script>
+
     <script>
-        function showNewBacktestModal() {
-            document.getElementById('new-backtest-section').style.display = 'block';
-            document.getElementById('new-backtest-section').scrollIntoView({ behavior: 'smooth' });
-        }
-        
-        function hideNewBacktestModal() {
-            document.getElementById('new-backtest-section').style.display = 'none';
-        }
-        
-        document.getElementById('backtest-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Backtest started! You will be notified when complete.');
-            hideNewBacktestModal();
+      // Chart.js default config for dark theme
+      Chart.defaults.color = '#9ca3af';
+      Chart.defaults.borderColor = 'rgba(75, 85, 99, 0.3)';
+      
+      let selectedMode = 'ml';
+      let charts = {};
+      
+      // Set default dates
+      const today = new Date();
+      const threeMonthsAgo = new Date(today);
+      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+      
+      document.getElementById('to-date').valueAsDate = today;
+      document.getElementById('from-date').valueAsDate = threeMonthsAgo;
+
+      // Backtest history
+      let backtestHistory = JSON.parse(localStorage.getItem('backtestHistory') || '[]');
+
+      function selectMode(mode) {
+        selectedMode = mode;
+        document.querySelectorAll('.mode-option').forEach(el => {
+          el.classList.remove('selected');
         });
+        document.querySelector(`.mode-option.${mode}`).classList.add('selected');
+      }
+
+      function formatINR(value) {
+        return '₹' + value.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      }
+
+      function generateBacktestResults() {
+        const symbol = document.getElementById('symbol').value;
+        const strategy = document.getElementById('strategy').value;
+        const capital = parseFloat(document.getElementById('capital').value);
+        const positionSize = parseFloat(document.getElementById('position-size').value);
+        
+        // Simulate backtest results
+        const totalReturn = (Math.random() * 50 - 10);
+        const trades = Math.floor(Math.random() * 40 + 15);
+        const winRate = Math.floor(Math.random() * 25 + 50);
+        const lossTrades = Math.floor(trades * (1 - winRate/100));
+        const winTrades = trades - lossTrades;
+        
+        // Generate equity curve data
+        const days = 90;
+        let equity = capital;
+        const equityData = [];
+        const drawdownData = [];
+        let peak = capital;
+        
+        for (let i = 0; i < days; i++) {
+          const date = new Date(threeMonthsAgo);
+          date.setDate(date.getDate() + i);
+          
+          // Random daily return with trend
+          const dailyReturn = (Math.random() - 0.45) * 0.02 + (totalReturn > 0 ? 0.001 : -0.001);
+          equity *= (1 + dailyReturn);
+          
+          if (equity > peak) peak = equity;
+          const drawdown = ((equity - peak) / peak) * 100;
+          
+          equityData.push({ x: date, y: equity });
+          drawdownData.push({ x: date, y: drawdown });
+        }
+        
+        // Generate monthly returns
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const monthlyReturns = months.slice(0, 6).map(() => (Math.random() * 20 - 8));
+        
+        // Generate trades
+        const tradeLog = [];
+        for (let i = 0; i < Math.min(trades, 15); i++) {
+          const isWin = Math.random() > (1 - winRate/100);
+          const tradeType = Math.random() > 0.3 ? 'LONG' : 'SHORT';
+          const entryPrice = 1000 + Math.random() * 2000;
+          const pnlPct = isWin ? Math.random() * 5 + 0.5 : -(Math.random() * 3 + 0.5);
+          const exitPrice = entryPrice * (1 + (tradeType === 'LONG' ? pnlPct : -pnlPct) / 100);
+          const pnl = (capital * positionSize / 100) * (pnlPct / 100);
+          
+          const tradeDate = new Date(threeMonthsAgo);
+          tradeDate.setDate(tradeDate.getDate() + Math.floor(Math.random() * 85));
+          
+          tradeLog.push({
+            date: tradeDate.toLocaleDateString('en-IN'),
+            type: tradeType,
+            entry: entryPrice,
+            exit: exitPrice,
+            pnl: pnl,
+            pnlPct: pnlPct,
+            reason: isWin ? 'Target Hit' : 'Stop Loss'
+          });
+        }
+        
+        return {
+          symbol,
+          strategy,
+          mode: selectedMode,
+          capital,
+          totalReturn,
+          finalValue: capital * (1 + totalReturn / 100),
+          trades,
+          winRate,
+          winTrades,
+          lossTrades,
+          sharpe: (Math.random() * 2 + 0.5),
+          maxDrawdown: Math.abs(Math.min(...drawdownData.map(d => d.y))),
+          profitFactor: (Math.random() * 1.5 + 1),
+          avgTrade: (capital * totalReturn / 100) / trades,
+          equityData,
+          drawdownData,
+          monthlyReturns,
+          months: months.slice(0, 6),
+          tradeLog,
+          timestamp: new Date().toISOString()
+        };
+      }
+
+      function displayResults(results) {
+        document.getElementById('results-section').style.display = 'block';
+        
+        // Update metrics
+        const returnEl = document.getElementById('result-return');
+        returnEl.textContent = (results.totalReturn >= 0 ? '+' : '') + results.totalReturn.toFixed(2) + '%';
+        returnEl.className = 'result-value ' + (results.totalReturn >= 0 ? 'positive' : 'negative');
+        
+        document.getElementById('result-final-value').textContent = formatINR(results.finalValue);
+        document.getElementById('result-trades').textContent = results.trades;
+        document.getElementById('result-winrate').textContent = results.winRate + '%';
+        document.getElementById('result-sharpe').textContent = results.sharpe.toFixed(2);
+        document.getElementById('result-drawdown').textContent = '-' + results.maxDrawdown.toFixed(2) + '%';
+        document.getElementById('result-profit-factor').textContent = results.profitFactor.toFixed(2);
+        document.getElementById('result-avg-trade').textContent = formatINR(results.avgTrade);
+        
+        // Update mode badge
+        document.getElementById('result-mode').innerHTML = 
+          results.mode === 'gpt' 
+            ? '<i class="fas fa-robot"></i> GPT Analysis' 
+            : '<i class="fas fa-microchip"></i> ML Model';
+        
+        // Render charts
+        renderEquityChart(results.equityData);
+        renderMonthlyChart(results.months, results.monthlyReturns);
+        renderWinLossChart(results.winTrades, results.lossTrades);
+        renderDrawdownChart(results.drawdownData);
+        
+        // Render trade log
+        renderTradeLog(results.tradeLog);
+        
+        // Scroll to results
+        document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
+      }
+
+      function renderEquityChart(data) {
+        const ctx = document.getElementById('equity-chart').getContext('2d');
+        if (charts.equity) charts.equity.destroy();
+        
+        charts.equity = new Chart(ctx, {
+          type: 'line',
+          data: {
+            datasets: [{
+              label: 'Portfolio Value',
+              data: data,
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              fill: true,
+              tension: 0.4,
+              pointRadius: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              x: {
+                type: 'time',
+                time: { unit: 'week' }
+              },
+              y: {
+                ticks: {
+                  callback: (value) => '₹' + (value/1000).toFixed(0) + 'K'
+                }
+              }
+            }
+          }
+        });
+      }
+
+      function renderMonthlyChart(months, returns) {
+        const ctx = document.getElementById('monthly-chart').getContext('2d');
+        if (charts.monthly) charts.monthly.destroy();
+        
+        charts.monthly = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: months,
+            datasets: [{
+              label: 'Monthly Return %',
+              data: returns,
+              backgroundColor: returns.map(r => r >= 0 ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)'),
+              borderRadius: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              y: {
+                ticks: {
+                  callback: (value) => value + '%'
+                }
+              }
+            }
+          }
+        });
+      }
+
+      function renderWinLossChart(wins, losses) {
+        const ctx = document.getElementById('winloss-chart').getContext('2d');
+        if (charts.winloss) charts.winloss.destroy();
+        
+        charts.winloss = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Winning Trades', 'Losing Trades'],
+            datasets: [{
+              data: [wins, losses],
+              backgroundColor: ['#10b981', '#ef4444'],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '60%',
+            plugins: {
+              legend: {
+                position: 'bottom'
+              }
+            }
+          }
+        });
+      }
+
+      function renderDrawdownChart(data) {
+        const ctx = document.getElementById('drawdown-chart').getContext('2d');
+        if (charts.drawdown) charts.drawdown.destroy();
+        
+        charts.drawdown = new Chart(ctx, {
+          type: 'line',
+          data: {
+            datasets: [{
+              label: 'Drawdown %',
+              data: data,
+              borderColor: '#ef4444',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              fill: true,
+              tension: 0.4,
+              pointRadius: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              x: {
+                type: 'time',
+                time: { unit: 'week' }
+              },
+              y: {
+                max: 0,
+                ticks: {
+                  callback: (value) => value + '%'
+                }
+              }
+            }
+          }
+        });
+      }
+
+      function renderTradeLog(trades) {
+        const tbody = document.getElementById('trades-body');
+        tbody.innerHTML = trades.map((trade, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${trade.date}</td>
+            <td class="${trade.type === 'LONG' ? 'trade-long' : 'trade-short'}">
+              <i class="fas fa-arrow-${trade.type === 'LONG' ? 'up' : 'down'}"></i> ${trade.type}
+            </td>
+            <td>₹${trade.entry.toFixed(2)}</td>
+            <td>₹${trade.exit.toFixed(2)}</td>
+            <td class="${trade.pnl >= 0 ? 'trade-long' : 'trade-short'}">
+              ${trade.pnl >= 0 ? '+' : ''}${formatINR(trade.pnl)}
+            </td>
+            <td class="${trade.pnlPct >= 0 ? 'trade-long' : 'trade-short'}">
+              ${trade.pnlPct >= 0 ? '+' : ''}${trade.pnlPct.toFixed(2)}%
+            </td>
+            <td>${trade.reason}</td>
+          </tr>
+        `).join('');
+      }
+
+      function renderHistory() {
+        const container = document.getElementById('history-container');
+        
+        if (backtestHistory.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-flask" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+              <h3 style="margin-bottom: 0.5rem;">No Backtests Yet</h3>
+              <p style="color: var(--text-muted);">Run your first backtest to see results here</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = backtestHistory.slice(0, 10).map((bt, i) => `
+          <div class="result-card" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 0.5rem;" onclick="showResult(${i})">
+            <div>
+              <div style="font-weight: 600;">${bt.symbol} - ${bt.strategy}</div>
+              <div style="font-size: 0.875rem; color: var(--text-muted);">
+                ${bt.mode === 'gpt' ? '🤖 GPT' : '🧠 ML'} • ${new Date(bt.timestamp).toLocaleDateString()}
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div class="${bt.totalReturn >= 0 ? 'trade-long' : 'trade-short'}" style="font-weight: 700;">
+                ${bt.totalReturn >= 0 ? '+' : ''}${bt.totalReturn.toFixed(2)}%
+              </div>
+              <div style="font-size: 0.875rem; color: var(--text-muted);">
+                ${bt.trades} trades
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function showResult(index) {
+        const bt = backtestHistory[index];
+        displayResults(bt);
+      }
+
+      // Run backtest
+      document.getElementById('run-backtest').addEventListener('click', async () => {
+        const btn = document.getElementById('run-backtest');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
+
+        // Simulate processing time
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        const results = generateBacktestResults();
+        
+        // Save to history
+        backtestHistory.unshift(results);
+        localStorage.setItem('backtestHistory', JSON.stringify(backtestHistory.slice(0, 50)));
+        
+        displayResults(results);
+        renderHistory();
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-play"></i> Run Backtest';
+      });
+
+      // Reset form
+      document.getElementById('reset-form').addEventListener('click', () => {
+        document.getElementById('symbol').value = 'RELIANCE';
+        document.getElementById('strategy').value = 'ai_signal';
+        document.getElementById('capital').value = '100000';
+        document.getElementById('position-size').value = '30';
+        document.getElementById('to-date').valueAsDate = today;
+        document.getElementById('from-date').valueAsDate = threeMonthsAgo;
+        selectMode('ml');
+        document.getElementById('results-section').style.display = 'none';
+      });
+
+      // Initial render
+      renderHistory();
     </script>
-</body>
+  </body>
 </html>

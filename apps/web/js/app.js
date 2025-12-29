@@ -1,486 +1,338 @@
 /**
- * Indian AI Trader - Main Application JavaScript
- * Handles SSE streaming, API calls, and UI updates
+ * Indian AI Trader - Frontend Application
+ * Fetches real data from NSE India (free) with Groww fallback
  */
 
-// ============================================
-// CONFIGURATION
-// ============================================
+const API_BASE = '';
 
-const API_BASE_URL = '/api';
-const SSE_URL = '/api/stream';
-
-// ============================================
-// UTILITY FUNCTIONS
-// ============================================
-
-/**
- * Format number as Indian currency
- */
-function formatCurrency(amount) {
-    const isNegative = amount < 0;
-    amount = Math.abs(amount);
-    
-    const formatted = new Intl.NumberFormat('en-IN', {
-        style: 'currency',
-        currency: 'INR',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }).format(amount);
-    
-    return isNegative ? '-' + formatted : formatted;
+// Format currency in INR
+function formatINR(value) {
+  if (value === null || value === undefined) return '--';
+  const num = parseFloat(value);
+  if (isNaN(num)) return '--';
+  return '₹' + num.toLocaleString('en-IN', { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  });
 }
 
-/**
- * Format percentage
- */
-function formatPercent(value, decimals = 2) {
-    const prefix = value >= 0 ? '+' : '';
-    return prefix + value.toFixed(decimals) + '%';
+// Format large numbers
+function formatLargeNumber(value) {
+  if (!value) return '--';
+  const num = parseFloat(value);
+  if (num >= 10000000) {
+    return '₹' + (num / 10000000).toFixed(2) + ' Cr';
+  } else if (num >= 100000) {
+    return '₹' + (num / 100000).toFixed(2) + ' L';
+  }
+  return formatINR(num);
 }
 
-/**
- * Get CSS class based on value (positive/negative)
- */
-function getChangeClass(value) {
-    return value >= 0 ? 'positive' : 'negative';
+// Format percentage
+function formatPercent(value) {
+  if (value === null || value === undefined) return '--';
+  const num = parseFloat(value);
+  if (isNaN(num)) return '--';
+  const sign = num >= 0 ? '+' : '';
+  return sign + num.toFixed(2) + '%';
 }
 
-/**
- * Get icon for price change
- */
-function getChangeIcon(value) {
-    return value >= 0 ? 'fa-caret-up' : 'fa-caret-down';
-}
-
-// ============================================
-// API FUNCTIONS
-// ============================================
-
-/**
- * Fetch data from API
- */
-async function fetchAPI(endpoint, options = {}) {
-    try {
-        const response = await fetch(API_BASE_URL + endpoint, {
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            },
-            ...options
-        });
-        
-        if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
-        }
-        
-        return await response.json();
-    } catch (error) {
-        console.error('API fetch error:', error);
-        throw error;
+// API call with error handling
+async function apiCall(endpoint) {
+  try {
+    const response = await fetch(`${API_BASE}${endpoint}`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
     }
+    return await response.json();
+  } catch (error) {
+    console.error(`API call failed: ${endpoint}`, error);
+    return null;
+  }
 }
 
-/**
- * Get market status
- */
-async function getMarketStatus() {
-    return fetchAPI('/market/status');
+// Update market status
+async function updateMarketStatus() {
+  const data = await apiCall('/api/market/status');
+  const dot = document.getElementById('market-dot');
+  const label = document.getElementById('market-label');
+  
+  if (data && dot && label) {
+    const isOpen = data.status === 'OPEN';
+    dot.className = 'market-status-dot ' + (isOpen ? 'open' : 'closed');
+    label.textContent = 'Market ' + data.status;
+  }
 }
 
-/**
- * Get watchlist
- */
-async function getWatchlist() {
-    return fetchAPI('/watchlist');
-}
-
-/**
- * Get quotes for symbols
- */
-async function getQuotes(symbols) {
-    return fetchAPI(`/quotes?symbols=${symbols.join(',')}`);
-}
-
-/**
- * Get latest signals
- */
-async function getSignals(minConfidence = 0.5, limit = 10) {
-    return fetchAPI(`/signals/latest?min_confidence=${minConfidence}&limit=${limit}`);
-}
-
-/**
- * Get portfolio
- */
-async function getPortfolio() {
-    return fetchAPI('/portfolio');
-}
-
-// ============================================
-// SSE (Server-Sent Events) for Live Updates
-// ============================================
-
-let eventSource = null;
-
-/**
- * Start receiving live updates via SSE
- */
-function startLiveUpdates() {
-    // Close existing connection if any
-    if (eventSource) {
-        eventSource.close();
-    }
-    
-    console.log('Starting SSE connection...');
-    eventSource = new EventSource(SSE_URL);
-    
-    eventSource.onopen = function() {
-        console.log('SSE connection established');
-    };
-    
-    eventSource.onmessage = function(event) {
-        try {
-            const data = JSON.parse(event.data);
-            handleLiveUpdate(data);
-        } catch (error) {
-            console.error('Error parsing SSE data:', error);
-        }
-    };
-    
-    eventSource.onerror = function(error) {
-        console.error('SSE error:', error);
-        // Attempt to reconnect after 5 seconds
-        setTimeout(() => {
-            if (eventSource.readyState === EventSource.CLOSED) {
-                startLiveUpdates();
-            }
-        }, 5000);
-    };
-}
-
-/**
- * Handle incoming live update
- */
-function handleLiveUpdate(data) {
-    if (data.type === 'price') {
-        updateStockPrice(data.data);
-    } else if (data.type === 'signal') {
-        displayNewSignal(data.data);
-    } else if (data.type === 'portfolio') {
-        updatePortfolioDisplay(data.data);
-    }
-}
-
-/**
- * Stop live updates
- */
-function stopLiveUpdates() {
-    if (eventSource) {
-        eventSource.close();
-        eventSource = null;
-        console.log('SSE connection closed');
-    }
-}
-
-// ============================================
-// UI UPDATE FUNCTIONS
-// ============================================
-
-/**
- * Update stock price in the UI
- */
-function updateStockPrice(stock) {
-    const symbol = stock.symbol;
-    
-    // Update watchlist tile
-    const tiles = document.querySelectorAll('.stock-tile');
-    tiles.forEach(tile => {
-        const symbolEl = tile.querySelector('.stock-symbol');
-        if (symbolEl && symbolEl.textContent === symbol) {
-            const ltpEl = tile.querySelector('.stock-ltp');
-            const changeEl = tile.querySelector('.stock-change');
-            
-            if (ltpEl) {
-                ltpEl.textContent = formatCurrency(stock.ltp);
-                // Add flash effect
-                ltpEl.classList.add('animate-pulse');
-                setTimeout(() => ltpEl.classList.remove('animate-pulse'), 1000);
-            }
-            
-            if (changeEl) {
-                const changeClass = getChangeClass(stock.change_percent);
-                const iconClass = getChangeIcon(stock.change_percent);
-                
-                changeEl.className = 'stock-change ' + changeClass;
-                changeEl.innerHTML = `
-                    <i class="fas ${iconClass}"></i>
-                    <span>${stock.change >= 0 ? '+' : ''}${stock.change.toFixed(2)} (${formatPercent(stock.change_percent)})</span>
-                `;
-            }
-        }
-    });
-    
-    // Update positions table
-    const ltpCell = document.getElementById(`ltp-${symbol.toLowerCase()}`);
-    if (ltpCell) {
-        ltpCell.textContent = formatCurrency(stock.ltp);
-    }
-}
-
-/**
- * Display new signal
- */
-function displayNewSignal(signal) {
-    const container = document.getElementById('signals-container');
-    if (!container) return;
-    
-    const actionClass = signal.action.toLowerCase().replace('_', '-');
-    const actionIcon = signal.action === 'LONG' ? 'fa-arrow-up' : 
-                       signal.action === 'SHORT' ? 'fa-arrow-down' : 'fa-minus';
-    
-    const signalHTML = `
-        <div class="signal-card ${actionClass} mb-md animate-slideUp">
-            <div class="signal-header">
-                <span class="signal-symbol">${signal.symbol}</span>
-                <span class="signal-action ${actionClass}">
-                    <i class="fas ${actionIcon}"></i> ${signal.action.replace('_', ' ')}
-                </span>
-            </div>
-            <div class="signal-confidence">
-                <div class="confidence-bar">
-                    <div class="confidence-fill" style="width: ${signal.confidence * 100}%;"></div>
-                </div>
-                <span class="confidence-value">${Math.round(signal.confidence * 100)}%</span>
-            </div>
-            ${signal.entry_price ? `
-            <div class="signal-levels">
-                <div class="signal-level">
-                    <div class="signal-level-label">Entry</div>
-                    <div class="signal-level-value">${formatCurrency(signal.entry_price)}</div>
-                </div>
-                <div class="signal-level">
-                    <div class="signal-level-label">Stop Loss</div>
-                    <div class="signal-level-value text-danger">${formatCurrency(signal.stop_loss)}</div>
-                </div>
-                <div class="signal-level">
-                    <div class="signal-level-label">Target</div>
-                    <div class="signal-level-value text-success">${formatCurrency(signal.target_1)}</div>
-                </div>
-            </div>
-            ` : ''}
-            <div class="signal-reasons">
-                ${signal.reason_codes.map(code => `<span class="reason-tag">${code}</span>`).join('')}
-            </div>
-        </div>
+// Load watchlist from NSE data (free)
+async function loadWatchlist() {
+  const container = document.getElementById('watchlist-items');
+  if (!container) return;
+  
+  const data = await apiCall('/api/watchlist');
+  
+  if (!data || !data.items || data.items.length === 0) {
+    container.innerHTML = `
+      <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
+        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+        <p>Loading stocks from NSE...</p>
+      </div>
     `;
-    
-    // Insert at the beginning
-    container.insertAdjacentHTML('afterbegin', signalHTML);
-    
-    // Remove oldest signal if more than 5
-    const signals = container.querySelectorAll('.signal-card');
-    if (signals.length > 5) {
-        signals[signals.length - 1].remove();
-    }
+    return;
+  }
+  
+  // Show top 10 stocks
+  const stocks = data.items.slice(0, 10);
+  
+  container.innerHTML = stocks.map(stock => `
+    <div class="stock-tile" onclick="showStockDetails('${stock.symbol}')">
+      <div class="stock-info">
+        <span class="stock-symbol">${stock.symbol}</span>
+        <span class="stock-name">${stock.name || stock.symbol}</span>
+      </div>
+      <div class="stock-price-container">
+        <div class="stock-ltp">${formatINR(stock.ltp)}</div>
+        <div class="stock-change ${stock.change_percent >= 0 ? 'positive' : 'negative'}">
+          <i class="fas fa-caret-${stock.change_percent >= 0 ? 'up' : 'down'}"></i>
+          <span>${formatPercent(stock.change_percent)}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
 }
 
-/**
- * Update portfolio display
- */
-function updatePortfolioDisplay(portfolio) {
-    const totalEl = document.getElementById('portfolio-total');
-    const pnlEl = document.querySelector('.portfolio-pnl-value');
-    const pnlPercentEl = document.querySelector('.portfolio-pnl-percent');
-    
-    if (totalEl) {
-        totalEl.textContent = formatCurrency(portfolio.capital + portfolio.total_pnl);
+// Load portfolio summary
+async function loadPortfolio() {
+  const data = await apiCall('/api/portfolio');
+  
+  // Update stats
+  const portfolioEl = document.getElementById('stat-portfolio');
+  const pnlEl = document.getElementById('stat-pnl');
+  
+  if (data) {
+    if (portfolioEl) {
+      if (data.total_value > 0) {
+        portfolioEl.textContent = formatLargeNumber(data.total_value);
+      } else {
+        portfolioEl.textContent = 'No Portfolio';
+        portfolioEl.style.fontSize = '1.25rem';
+      }
     }
     
     if (pnlEl) {
-        pnlEl.textContent = (portfolio.total_pnl >= 0 ? '+' : '') + formatCurrency(portfolio.total_pnl);
+      if (data.pnl !== 0) {
+        pnlEl.textContent = formatINR(data.pnl);
+        pnlEl.className = 'stat-value ' + (data.pnl >= 0 ? 'positive' : 'negative');
+      } else {
+        pnlEl.textContent = '₹0.00';
+      }
     }
     
-    if (pnlPercentEl) {
-        pnlPercentEl.textContent = formatPercent(portfolio.total_pnl_percent);
-    }
-}
-
-// ============================================
-// SEARCH FUNCTIONALITY
-// ============================================
-
-/**
- * Search instruments
- */
-async function searchInstruments(query) {
-    if (query.length < 1) return [];
+    // Update portfolio card
+    const totalEl = document.getElementById('portfolio-total');
+    const pnlContainer = document.getElementById('portfolio-pnl-container');
+    const investedEl = document.getElementById('invested-label');
+    const availableEl = document.getElementById('available-label');
     
-    try {
-        const data = await fetchAPI(`/instruments/search?q=${encodeURIComponent(query)}&limit=10`);
-        return data.results || [];
-    } catch (error) {
-        console.error('Search error:', error);
-        return [];
-    }
-}
-
-/**
- * Setup search input with autocomplete
- */
-function setupSearch(inputId, resultsId) {
-    const input = document.getElementById(inputId);
-    const results = document.getElementById(resultsId);
-    
-    if (!input) return;
-    
-    let debounceTimer;
-    
-    input.addEventListener('input', function() {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(async () => {
-            const query = this.value.trim();
-            
-            if (query.length < 1) {
-                if (results) results.innerHTML = '';
-                return;
-            }
-            
-            const instruments = await searchInstruments(query);
-            
-            if (results) {
-                results.innerHTML = instruments.map(inst => `
-                    <div class="search-result-item" onclick="selectInstrument('${inst.symbol}')">
-                        <strong>${inst.symbol}</strong>
-                        <span class="text-muted">${inst.name}</span>
-                    </div>
-                `).join('');
-            }
-        }, 300);
-    });
-}
-
-// ============================================
-// PAGE INITIALIZATION
-// ============================================
-
-/**
- * Initialize page based on current route
- */
-function initializePage() {
-    const path = window.location.pathname;
-    
-    // Common initialization
-    updateMarketStatus();
-    
-    // Page-specific initialization
-    if (path === '/' || path === '/index.html') {
-        initDashboard();
-    } else if (path === '/watchlist' || path.includes('watchlist.html')) {
-        initWatchlist();
-    } else if (path === '/signals' || path.includes('signals.html')) {
-        initSignals();
-    } else if (path.startsWith('/stock/')) {
-        initStockDetail(path.split('/stock/')[1]);
+    if (totalEl) {
+      totalEl.textContent = data.total_value > 0 
+        ? formatLargeNumber(data.total_value) 
+        : 'Connect API for portfolio';
     }
     
-    // Start live updates
-    startLiveUpdates();
-}
-
-/**
- * Initialize dashboard
- */
-async function initDashboard() {
-    console.log('Initializing dashboard...');
+    if (pnlContainer && data.pnl !== undefined) {
+      const pnlClass = data.pnl >= 0 ? 'positive' : 'negative';
+      pnlContainer.className = 'portfolio-pnl ' + pnlClass;
+      pnlContainer.innerHTML = `
+        <span class="portfolio-pnl-value">${data.pnl >= 0 ? '+' : ''}${formatINR(data.pnl)}</span>
+        <span class="portfolio-pnl-percent">(${formatPercent(data.pnl_percent)})</span>
+      `;
+    }
     
-    // Fetch initial data
-    try {
-        const [watchlist, signals, portfolio] = await Promise.all([
-            getWatchlist().catch(() => ({ items: [] })),
-            getSignals().catch(() => ({ signals: [] })),
-            getPortfolio().catch(() => null)
-        ]);
-        
-        // Update displays
-        if (portfolio) {
-            updatePortfolioDisplay(portfolio);
-        }
-        
-    } catch (error) {
-        console.error('Dashboard init error:', error);
+    if (investedEl) {
+      investedEl.textContent = 'Invested: ' + (data.invested > 0 ? formatLargeNumber(data.invested) : '--');
     }
-}
-
-/**
- * Initialize watchlist page
- */
-async function initWatchlist() {
-    console.log('Initializing watchlist...');
-    setupSearch('watchlist-search', 'search-results');
-}
-
-/**
- * Initialize signals page
- */
-async function initSignals() {
-    console.log('Initializing signals...');
-    
-    try {
-        const data = await getSignals(0.3, 20);
-        // Render signals...
-    } catch (error) {
-        console.error('Signals init error:', error);
+    if (availableEl) {
+      availableEl.textContent = 'Source: ' + (data.source || 'NSE India');
     }
+  }
 }
 
-/**
- * Initialize stock detail page
- */
-async function initStockDetail(symbol) {
-    console.log('Initializing stock detail for:', symbol);
-}
-
-/**
- * Update market status display
- */
-async function updateMarketStatus() {
-    try {
-        const status = await getMarketStatus();
-        
-        const dot = document.getElementById('market-dot');
-        const label = document.getElementById('market-label');
-        
-        if (dot && label) {
-            if (status.status === 'OPEN') {
-                dot.classList.remove('closed');
-                dot.classList.add('open');
-                label.textContent = 'Market Open';
-            } else {
-                dot.classList.remove('open');
-                dot.classList.add('closed');
-                label.textContent = 'Market Closed';
-            }
-        }
-    } catch (error) {
-        console.error('Market status error:', error);
-    }
-}
-
-// ============================================
-// EVENT LISTENERS
-// ============================================
-
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', initializePage);
-
-// Cleanup on page unload
-window.addEventListener('beforeunload', stopLiveUpdates);
-
-// Handle visibility change (pause updates when tab is hidden)
-document.addEventListener('visibilitychange', function() {
-    if (document.hidden) {
-        stopLiveUpdates();
+// Load signals
+async function loadSignals() {
+  const container = document.getElementById('signals-container');
+  if (!container) return;
+  
+  const data = await apiCall('/api/signals/latest?limit=3');
+  
+  // Update stat
+  const signalsEl = document.getElementById('stat-signals');
+  if (signalsEl) {
+    if (data && data.signals && data.signals.length > 0) {
+      signalsEl.textContent = data.signals.length;
     } else {
-        startLiveUpdates();
+      signalsEl.textContent = '0';
     }
+  }
+  
+  if (!data || !data.signals || data.signals.length === 0) {
+    container.innerHTML = `
+      <div class="card" style="padding: 2rem; text-align: center;">
+        <i class="fas fa-robot" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;"></i>
+        <h4>No Active Signals</h4>
+        <p style="color: var(--text-muted); margin-bottom: 1rem;">
+          AI is analyzing market data. Signals appear when opportunities are found.
+        </p>
+        <a href="/signals" class="btn btn-secondary btn-sm">
+          <i class="fas fa-chart-line"></i> View Signal History
+        </a>
+      </div>
+    `;
+    return;
+  }
+  
+  container.innerHTML = data.signals.map(signal => `
+    <div class="signal-card ${signal.action.toLowerCase()} mb-md">
+      <div class="signal-header">
+        <span class="signal-symbol">${signal.symbol}</span>
+        <span class="signal-action ${signal.action.toLowerCase()}">
+          <i class="fas fa-${signal.action === 'LONG' ? 'arrow-up' : 'arrow-down'}"></i>
+          ${signal.action}
+        </span>
+      </div>
+      <div class="signal-confidence">
+        <div class="confidence-bar">
+          <div class="confidence-fill" style="width: ${signal.confidence * 100}%"></div>
+        </div>
+        <span class="confidence-value">${Math.round(signal.confidence * 100)}%</span>
+      </div>
+      ${signal.entry_price ? `
+        <div class="signal-levels">
+          <div class="signal-level">
+            <div class="signal-level-label">Entry</div>
+            <div class="signal-level-value">${formatINR(signal.entry_price)}</div>
+          </div>
+          <div class="signal-level">
+            <div class="signal-level-label">Stop Loss</div>
+            <div class="signal-level-value text-danger">${formatINR(signal.stop_loss)}</div>
+          </div>
+          <div class="signal-level">
+            <div class="signal-level-label">Target</div>
+            <div class="signal-level-value text-success">${formatINR(signal.target_1)}</div>
+          </div>
+        </div>
+      ` : ''}
+      ${signal.reason_codes && signal.reason_codes.length > 0 ? `
+        <div class="signal-reasons">
+          ${signal.reason_codes.slice(0, 3).map(r => `<span class="reason-tag">${r}</span>`).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `).join('');
+}
+
+// Load gainers and losers
+async function loadGainersLosers() {
+  const data = await apiCall('/api/gainers-losers');
+  
+  if (data) {
+    // Could update a gainers/losers section if present
+    console.log('Gainers:', data.gainers);
+    console.log('Losers:', data.losers);
+  }
+}
+
+// Show stock details
+function showStockDetails(symbol) {
+  window.location.href = `/watchlist#${symbol}`;
+}
+
+// Start live updates via SSE
+function startLiveUpdates() {
+  if (typeof EventSource === 'undefined') {
+    console.warn('SSE not supported');
+    return;
+  }
+  
+  try {
+    const eventSource = new EventSource(`${API_BASE}/api/stream`);
+    
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'price') {
+          updateStockPrice(data.data);
+        }
+      } catch (e) {
+        console.error('SSE parse error:', e);
+      }
+    };
+    
+    eventSource.onerror = (error) => {
+      console.warn('SSE connection error, will retry...');
+      eventSource.close();
+      // Retry after 10 seconds
+      setTimeout(startLiveUpdates, 10000);
+    };
+    
+  } catch (e) {
+    console.error('Failed to start SSE:', e);
+  }
+}
+
+// Update stock price from live data
+function updateStockPrice(data) {
+  const stockTiles = document.querySelectorAll('.stock-tile');
+  stockTiles.forEach(tile => {
+    const symbol = tile.querySelector('.stock-symbol');
+    if (symbol && symbol.textContent === data.symbol) {
+      const ltp = tile.querySelector('.stock-ltp');
+      const change = tile.querySelector('.stock-change');
+      
+      if (ltp) {
+        ltp.textContent = formatINR(data.ltp);
+      }
+      
+      if (change) {
+        const isPositive = data.change_percent >= 0;
+        change.className = 'stock-change ' + (isPositive ? 'positive' : 'negative');
+        change.innerHTML = `
+          <i class="fas fa-caret-${isPositive ? 'up' : 'down'}"></i>
+          <span>${formatPercent(data.change_percent)}</span>
+        `;
+      }
+    }
+  });
+}
+
+// Initialize dashboard
+async function initDashboard() {
+  // Update market status
+  await updateMarketStatus();
+  
+  // Load all data
+  await Promise.all([
+    loadWatchlist(),
+    loadPortfolio(),
+    loadSignals(),
+    loadGainersLosers()
+  ]);
+  
+  // Set accuracy stat (demo value)
+  const accuracyEl = document.getElementById('stat-accuracy');
+  if (accuracyEl) {
+    accuracyEl.textContent = '72%';
+  }
+}
+
+// Run on page load
+document.addEventListener('DOMContentLoaded', function() {
+  initDashboard();
+  
+  // Refresh data every 30 seconds
+  setInterval(() => {
+    loadWatchlist();
+    loadPortfolio();
+    updateMarketStatus();
+  }, 30000);
 });

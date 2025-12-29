@@ -1,398 +1,398 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="AI Trading Signals - Real-time buy/sell signals for Indian stocks with confidence scores and risk parameters.">
-    <title>AI Signals | Indian AI Trader</title>
-    
-    <link rel="icon" type="image/svg+xml" href="/assets/logo.svg">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <link rel="stylesheet" href="/css/base.css">
-    <link rel="stylesheet" href="/css/components.css">
-    <link rel="stylesheet" href="/css/pages.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Signals - Indian AI Trader</title>
+    <meta name="description" content="AI-powered trading signals for Indian stock market" />
+    <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/components.css" />
+    <link rel="stylesheet" href="/css/pages.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      .signals-container {
+        display: grid;
+        gap: 1rem;
+      }
+      .signal-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+      .signal-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      }
+      .signal-card.long {
+        border-left: 4px solid var(--success);
+      }
+      .signal-card.short {
+        border-left: 4px solid var(--danger);
+      }
+      .signal-card.no-trade {
+        border-left: 4px solid var(--text-muted);
+      }
+      .signal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+      .signal-symbol {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+      .signal-action {
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius);
+        font-weight: 600;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .signal-action.long {
+        background: rgba(34, 197, 94, 0.2);
+        color: var(--success);
+      }
+      .signal-action.short {
+        background: rgba(239, 68, 68, 0.2);
+        color: var(--danger);
+      }
+      .signal-action.no-trade {
+        background: rgba(148, 163, 184, 0.2);
+        color: var(--text-muted);
+      }
+      .signal-levels {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--bg-tertiary);
+        border-radius: var(--radius);
+      }
+      .level {
+        text-align: center;
+      }
+      .level-label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        margin-bottom: 0.25rem;
+      }
+      .level-value {
+        font-size: 1rem;
+        font-weight: 600;
+        font-family: var(--font-mono);
+      }
+      .level-value.entry { color: var(--primary); }
+      .level-value.sl { color: var(--danger); }
+      .level-value.target { color: var(--success); }
+      .signal-confidence {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+      .confidence-bar {
+        flex: 1;
+        height: 8px;
+        background: var(--bg-tertiary);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .confidence-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        border-radius: 4px;
+        transition: width 0.5s ease;
+      }
+      .confidence-value {
+        font-weight: 600;
+        color: var(--primary);
+        min-width: 50px;
+        text-align: right;
+      }
+      .signal-reasons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+      }
+      .reason-tag {
+        padding: 0.25rem 0.75rem;
+        background: var(--bg-tertiary);
+        border-radius: 100px;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+      }
+      .signal-time {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+      }
+      .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--bg-secondary);
+        border: 1px dashed var(--border-color);
+        border-radius: var(--radius-lg);
+      }
+      .empty-state i {
+        font-size: 4rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+      .stat-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1.25rem;
+        text-align: center;
+      }
+      .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary);
+      }
+      .stat-label {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        margin-top: 0.25rem;
+      }
+    </style>
+  </head>
+  <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <div class="navbar-content">
-            <a href="/" class="navbar-brand">
-                <i class="fas fa-chart-line"></i>
-                <span>Indian AI Trader</span>
-            </a>
-            
-            <ul class="navbar-nav">
-                <li><a href="/" class="nav-link"><i class="fas fa-home"></i> Dashboard</a></li>
-                <li><a href="/watchlist" class="nav-link"><i class="fas fa-eye"></i> Watchlist</a></li>
-                <li><a href="/signals" class="nav-link active"><i class="fas fa-bolt"></i> Signals</a></li>
-                <li><a href="/pages/backtests.html" class="nav-link"><i class="fas fa-chart-bar"></i> Backtests</a></li>
-                <li><a href="/pages/settings.html" class="nav-link"><i class="fas fa-cog"></i> Settings</a></li>
-            </ul>
-            
-            <div class="market-status" id="market-status">
-                <span class="market-status-dot closed" id="market-dot"></span>
-                <span id="market-label">Market Closed</span>
-            </div>
+      <div class="container navbar-content">
+        <a href="/" class="navbar-brand">
+          <i class="fas fa-chart-line"></i>
+          <span>Indian AI Trader</span>
+        </a>
+        <div class="navbar-menu">
+          <a href="/" class="nav-link">Dashboard</a>
+          <a href="/watchlist" class="nav-link">Watchlist</a>
+          <a href="/signals" class="nav-link active">Signals</a>
+          <a href="/backtests" class="nav-link">Backtests</a>
+          <a href="/settings" class="nav-link"><i class="fas fa-cog"></i></a>
         </div>
+      </div>
     </nav>
-    
-    <main class="main-content">
-        <div class="container">
-            <!-- Page Header -->
-            <div class="page-header">
-                <h1 class="page-title">
-                    <i class="fas fa-bolt" style="color: var(--accent-primary);"></i>
-                    AI Trading Signals
-                </h1>
-                <p class="page-subtitle">Real-time AI-generated buy/sell signals with confidence scores and risk parameters</p>
-            </div>
-            
-            <!-- Filters -->
-            <div class="signals-header">
-                <div class="tabs" id="signal-tabs">
-                    <button class="tab active" data-filter="all">All Signals</button>
-                    <button class="tab" data-filter="long">Long Only</button>
-                    <button class="tab" data-filter="short">Short Only</button>
-                    <button class="tab" data-filter="no-trade">No Trade</button>
-                </div>
-                
-                <div class="signals-filters">
-                    <div class="signal-filter-group">
-                        <span class="signal-filter-label">Min Confidence:</span>
-                        <select class="form-select" id="confidence-filter" style="width: auto;">
-                            <option value="0.3">30%+</option>
-                            <option value="0.5" selected>50%+</option>
-                            <option value="0.7">70%+</option>
-                            <option value="0.8">80%+</option>
-                        </select>
-                    </div>
-                    
-                    <div class="signal-filter-group">
-                        <span class="signal-filter-label">Timeframe:</span>
-                        <select class="form-select" id="timeframe-filter" style="width: auto;">
-                            <option value="">All</option>
-                            <option value="5m">5 min</option>
-                            <option value="15m" selected>15 min</option>
-                            <option value="1h">1 hour</option>
-                            <option value="1d">Daily</option>
-                        </select>
-                    </div>
-                    
-                    <button class="btn btn-primary btn-sm" onclick="refreshSignals()">
-                        <i class="fas fa-sync"></i> Refresh
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Signal Stats -->
-            <div class="grid grid-4 mb-lg">
-                <div class="card stat-card">
-                    <div class="stat-value" id="total-signals">15</div>
-                    <div class="stat-label">Total Signals</div>
-                </div>
-                <div class="card stat-card">
-                    <div class="stat-value text-success" id="long-signals">8</div>
-                    <div class="stat-label">Long Signals</div>
-                </div>
-                <div class="card stat-card">
-                    <div class="stat-value text-danger" id="short-signals">3</div>
-                    <div class="stat-label">Short Signals</div>
-                </div>
-                <div class="card stat-card">
-                    <div class="stat-value" id="avg-confidence">72%</div>
-                    <div class="stat-label">Avg Confidence</div>
-                </div>
-            </div>
-            
-            <!-- Signals Grid -->
-            <div class="signals-list" id="signals-list">
-                <!-- Signal 1 -->
-                <div class="signal-card long">
-                    <div class="signal-header">
-                        <div>
-                            <span class="signal-symbol">RELIANCE</span>
-                            <span style="color: var(--text-muted); font-size: 0.75rem; margin-left: 0.5rem;">NSE</span>
-                        </div>
-                        <span class="signal-action long">
-                            <i class="fas fa-arrow-up"></i> LONG
-                        </span>
-                    </div>
-                    <div class="signal-confidence">
-                        <div class="confidence-bar">
-                            <div class="confidence-fill" style="width: 78%;"></div>
-                        </div>
-                        <span class="confidence-value">78%</span>
-                    </div>
-                    <div class="signal-levels">
-                        <div class="signal-level">
-                            <div class="signal-level-label">Entry</div>
-                            <div class="signal-level-value">₹2,450.00</div>
-                        </div>
-                        <div class="signal-level">
-                            <div class="signal-level-label">Stop Loss</div>
-                            <div class="signal-level-value text-danger">₹2,400.00</div>
-                        </div>
-                        <div class="signal-level">
-                            <div class="signal-level-label">Target 1</div>
-                            <div class="signal-level-value text-success">₹2,520.00</div>
-                        </div>
-                    </div>
-                    <div class="signal-reasons">
-                        <span class="reason-tag">RSI_OVERSOLD</span>
-                        <span class="reason-tag">MACD_BULLISH</span>
-                        <span class="reason-tag">HIGH_VOLUME</span>
-                    </div>
-                    <div class="card-footer" style="margin: 1rem -1.5rem -1.5rem; padding: 0.75rem 1.5rem;">
-                        <div class="flex-between" style="font-size: 0.75rem; color: var(--text-muted);">
-                            <span><i class="fas fa-clock"></i> 15m timeframe</span>
-                            <span>2 minutes ago</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Signal 2 -->
-                <div class="signal-card long">
-                    <div class="signal-header">
-                        <div>
-                            <span class="signal-symbol">SBIN</span>
-                            <span style="color: var(--text-muted); font-size: 0.75rem; margin-left: 0.5rem;">NSE</span>
-                        </div>
-                        <span class="signal-action long">
-                            <i class="fas fa-arrow-up"></i> LONG
-                        </span>
-                    </div>
-                    <div class="signal-confidence">
-                        <div class="confidence-bar">
-                            <div class="confidence-fill" style="width: 82%;"></div>
-                        </div>
-                        <span class="confidence-value">82%</span>
-                    </div>
-                    <div class="signal-levels">
-                        <div class="signal-level">
-                            <div class="signal-level-label">Entry</div>
-                            <div class="signal-level-value">₹630.00</div>
-                        </div>
-                        <div class="signal-level">
-                            <div class="signal-level-label">Stop Loss</div>
-                            <div class="signal-level-value text-danger">₹615.00</div>
-                        </div>
-                        <div class="signal-level">
-                            <div class="signal-level-label">Target 1</div>
-                            <div class="signal-level-value text-success">₹655.00</div>
-                        </div>
-                    </div>
-                    <div class="signal-reasons">
-                        <span class="reason-tag">BREAKOUT</span>
-                        <span class="reason-tag">UPTREND</span>
-                        <span class="reason-tag">HIGH_VOLUME</span>
-                    </div>
-                    <div class="card-footer" style="margin: 1rem -1.5rem -1.5rem; padding: 0.75rem 1.5rem;">
-                        <div class="flex-between" style="font-size: 0.75rem; color: var(--text-muted);">
-                            <span><i class="fas fa-clock"></i> 15m timeframe</span>
-                            <span>5 minutes ago</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Signal 3 -->
-                <div class="signal-card long">
-                    <div class="signal-header">
-                        <div>
-                            <span class="signal-symbol">ICICIBANK</span>
-                            <span style="color: var(--text-muted); font-size: 0.75rem; margin-left: 0.5rem;">NSE</span>
-                        </div>
-                        <span class="signal-action long">
-                            <i class="fas fa-arrow-up"></i> LONG
-                        </span>
-                    </div>
-                    <div class="signal-confidence">
-                        <div class="confidence-bar">
-                            <div class="confidence-fill" style="width: 71%;"></div>
-                        </div>
-                        <span class="confidence-value">71%</span>
-                    </div>
-                    <div class="signal-levels">
-                        <div class="signal-level">
-                            <div class="signal-level-label">Entry</div>
-                            <div class="signal-level-value">₹1,020.00</div>
-                        </div>
-                        <div class="signal-level">
-                            <div class="signal-level-label">Stop Loss</div>
-                            <div class="signal-level-value text-danger">₹995.00</div>
-                        </div>
-                        <div class="signal-level">
-                            <div class="signal-level-label">Target 1</div>
-                            <div class="signal-level-value text-success">₹1,055.00</div>
-                        </div>
-                    </div>
-                    <div class="signal-reasons">
-                        <span class="reason-tag">RSI_NEUTRAL</span>
-                        <span class="reason-tag">MACD_BULLISH</span>
-                        <span class="reason-tag">SUPPORT_BOUNCE</span>
-                    </div>
-                    <div class="card-footer" style="margin: 1rem -1.5rem -1.5rem; padding: 0.75rem 1.5rem;">
-                        <div class="flex-between" style="font-size: 0.75rem; color: var(--text-muted);">
-                            <span><i class="fas fa-clock"></i> 1h timeframe</span>
-                            <span>12 minutes ago</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Signal 4 - No Trade -->
-                <div class="signal-card no-trade">
-                    <div class="signal-header">
-                        <div>
-                            <span class="signal-symbol">TCS</span>
-                            <span style="color: var(--text-muted); font-size: 0.75rem; margin-left: 0.5rem;">NSE</span>
-                        </div>
-                        <span class="signal-action no-trade">
-                            <i class="fas fa-minus"></i> NO TRADE
-                        </span>
-                    </div>
-                    <div class="signal-confidence">
-                        <div class="confidence-bar">
-                            <div class="confidence-fill" style="width: 45%;"></div>
-                        </div>
-                        <span class="confidence-value">45%</span>
-                    </div>
-                    <div class="signal-reasons">
-                        <span class="reason-tag">SIDEWAYS</span>
-                        <span class="reason-tag">LOW_VOLATILITY</span>
-                        <span class="reason-tag">INDECISIVE</span>
-                    </div>
-                    <div class="card-footer" style="margin: 1rem -1.5rem -1.5rem; padding: 0.75rem 1.5rem;">
-                        <div class="flex-between" style="font-size: 0.75rem; color: var(--text-muted);">
-                            <span><i class="fas fa-clock"></i> 15m timeframe</span>
-                            <span>18 minutes ago</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Signal 5 -->
-                <div class="signal-card long">
-                    <div class="signal-header">
-                        <div>
-                            <span class="signal-symbol">BHARTIARTL</span>
-                            <span style="color: var(--text-muted); font-size: 0.75rem; margin-left: 0.5rem;">NSE</span>
-                        </div>
-                        <span class="signal-action long">
-                            <i class="fas fa-arrow-up"></i> LONG
-                        </span>
-                    </div>
-                    <div class="signal-confidence">
-                        <div class="confidence-bar">
-                            <div class="confidence-fill" style="width: 68%;"></div>
-                        </div>
-                        <span class="confidence-value">68%</span>
-                    </div>
-                    <div class="signal-levels">
-                        <div class="signal-level">
-                            <div class="signal-level-label">Entry</div>
-                            <div class="signal-level-value">₹1,230.00</div>
-                        </div>
-                        <div class="signal-level">
-                            <div class="signal-level-label">Stop Loss</div>
-                            <div class="signal-level-value text-danger">₹1,195.00</div>
-                        </div>
-                        <div class="signal-level">
-                            <div class="signal-level-label">Target 1</div>
-                            <div class="signal-level-value text-success">₹1,280.00</div>
-                        </div>
-                    </div>
-                    <div class="signal-reasons">
-                        <span class="reason-tag">MOMENTUM</span>
-                        <span class="reason-tag">UPTREND</span>
-                    </div>
-                    <div class="card-footer" style="margin: 1rem -1.5rem -1.5rem; padding: 0.75rem 1.5rem;">
-                        <div class="flex-between" style="font-size: 0.75rem; color: var(--text-muted);">
-                            <span><i class="fas fa-clock"></i> 1h timeframe</span>
-                            <span>25 minutes ago</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Signal 6 - No Trade -->
-                <div class="signal-card no-trade">
-                    <div class="signal-header">
-                        <div>
-                            <span class="signal-symbol">INFY</span>
-                            <span style="color: var(--text-muted); font-size: 0.75rem; margin-left: 0.5rem;">NSE</span>
-                        </div>
-                        <span class="signal-action no-trade">
-                            <i class="fas fa-minus"></i> NO TRADE
-                        </span>
-                    </div>
-                    <div class="signal-confidence">
-                        <div class="confidence-bar">
-                            <div class="confidence-fill" style="width: 38%;"></div>
-                        </div>
-                        <span class="confidence-value">38%</span>
-                    </div>
-                    <div class="signal-reasons">
-                        <span class="reason-tag">DOWNTREND</span>
-                        <span class="reason-tag">LOW_CONFIDENCE</span>
-                    </div>
-                    <div class="card-footer" style="margin: 1rem -1.5rem -1.5rem; padding: 0.75rem 1.5rem;">
-                        <div class="flex-between" style="font-size: 0.75rem; color: var(--text-muted);">
-                            <span><i class="fas fa-clock"></i> 15m timeframe</span>
-                            <span>32 minutes ago</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+    <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+      <div class="page-header" style="margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">
+          <i class="fas fa-robot" style="color: var(--secondary);"></i> AI Trading Signals
+        </h1>
+        <p style="color: var(--text-muted);">Machine learning powered trading signals for NSE stocks</p>
+      </div>
+
+      <!-- Stats -->
+      <section class="stats-grid" id="stats-container">
+        <div class="stat-card">
+          <div class="stat-value" id="total-signals">--</div>
+          <div class="stat-label">Total Signals Today</div>
         </div>
+        <div class="stat-card">
+          <div class="stat-value" id="long-signals">--</div>
+          <div class="stat-label">Long Signals</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="short-signals">--</div>
+          <div class="stat-label">Short Signals</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="avg-confidence">--%</div>
+          <div class="stat-label">Avg Confidence</div>
+        </div>
+      </section>
+
+      <!-- Filter -->
+      <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+        <select id="filter-action" style="padding: 0.75rem 1rem; border-radius: var(--radius); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);">
+          <option value="all">All Actions</option>
+          <option value="LONG">Long Only</option>
+          <option value="SHORT">Short Only</option>
+        </select>
+        <select id="filter-confidence" style="padding: 0.75rem 1rem; border-radius: var(--radius); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);">
+          <option value="0">All Confidence</option>
+          <option value="0.7">High (70%+)</option>
+          <option value="0.8">Very High (80%+)</option>
+        </select>
+        <button id="refresh-btn" class="btn btn-primary">
+          <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+      </div>
+
+      <!-- Signals -->
+      <section class="signals-container" id="signals-container">
+        <div class="empty-state">
+          <i class="fas fa-robot"></i>
+          <h3 style="margin-bottom: 0.5rem;">Loading Signals...</h3>
+          <p style="color: var(--text-muted);">Fetching AI-generated trading signals</p>
+        </div>
+      </section>
     </main>
-    
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2024 Indian AI Trader. Built with ❤️ for the Indian trading community.</p>
-        </div>
-    </footer>
-    
-    <script src="/js/app.js"></script>
+
     <script>
-        // Filter signals by type
-        document.querySelectorAll('#signal-tabs .tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                // Update active tab
-                document.querySelectorAll('#signal-tabs .tab').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                
-                const filter = this.dataset.filter;
-                filterSignals(filter);
-            });
-        });
+      const API_BASE = '';
+      let allSignals = [];
+
+      function formatPrice(value) {
+        if (!value) return '₹0';
+        return '₹' + parseFloat(value).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+      }
+
+      function formatTime(timestamp) {
+        if (!timestamp) return '';
+        const date = new Date(timestamp);
+        return date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      }
+
+      function renderSignals(signals) {
+        const container = document.getElementById('signals-container');
         
-        function filterSignals(type) {
-            const signals = document.querySelectorAll('#signals-list .signal-card');
-            signals.forEach(signal => {
-                if (type === 'all') {
-                    signal.style.display = '';
-                } else if (type === 'long' && signal.classList.contains('long')) {
-                    signal.style.display = '';
-                } else if (type === 'short' && signal.classList.contains('short')) {
-                    signal.style.display = '';
-                } else if (type === 'no-trade' && signal.classList.contains('no-trade')) {
-                    signal.style.display = '';
-                } else {
-                    signal.style.display = 'none';
-                }
-            });
+        if (!signals || signals.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-robot"></i>
+              <h3 style="margin-bottom: 0.5rem;">No Active Signals</h3>
+              <p style="color: var(--text-muted); margin-bottom: 1rem;">
+                The AI is analyzing market data. Signals will appear when opportunities are found.
+              </p>
+              <p style="color: var(--text-muted); font-size: 0.875rem;">
+                <i class="fas fa-info-circle"></i> 
+                Start the Signal Service: <code>python -m uvicorn services.signal-service.src.main:app --port 8005</code>
+              </p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = signals.map(signal => `
+          <div class="signal-card ${signal.action.toLowerCase()}">
+            <span class="signal-time">${formatTime(signal.created_at)}</span>
+            <div class="signal-header">
+              <span class="signal-symbol">${signal.symbol}</span>
+              <span class="signal-action ${signal.action.toLowerCase()}">
+                <i class="fas fa-${signal.action === 'LONG' ? 'arrow-up' : signal.action === 'SHORT' ? 'arrow-down' : 'minus'}"></i>
+                ${signal.action}
+              </span>
+            </div>
+            <div class="signal-confidence">
+              <span style="font-size: 0.875rem; color: var(--text-muted);">Confidence</span>
+              <div class="confidence-bar">
+                <div class="confidence-fill" style="width: ${signal.confidence * 100}%"></div>
+              </div>
+              <span class="confidence-value">${Math.round(signal.confidence * 100)}%</span>
+            </div>
+            ${signal.entry_price ? `
+              <div class="signal-levels">
+                <div class="level">
+                  <div class="level-label">Entry</div>
+                  <div class="level-value entry">${formatPrice(signal.entry_price)}</div>
+                </div>
+                <div class="level">
+                  <div class="level-label">Stop Loss</div>
+                  <div class="level-value sl">${formatPrice(signal.stop_loss)}</div>
+                </div>
+                <div class="level">
+                  <div class="level-label">Target</div>
+                  <div class="level-value target">${formatPrice(signal.target_1)}</div>
+                </div>
+              </div>
+            ` : ''}
+            ${signal.reason_codes && signal.reason_codes.length > 0 ? `
+              <div class="signal-reasons">
+                ${signal.reason_codes.map(r => `<span class="reason-tag">${r}</span>`).join('')}
+              </div>
+            ` : ''}
+          </div>
+        `).join('');
+      }
+
+      function updateStats(signals) {
+        const longCount = signals.filter(s => s.action === 'LONG').length;
+        const shortCount = signals.filter(s => s.action === 'SHORT').length;
+        const avgConf = signals.length > 0 
+          ? signals.reduce((sum, s) => sum + s.confidence, 0) / signals.length 
+          : 0;
+
+        document.getElementById('total-signals').textContent = signals.length;
+        document.getElementById('long-signals').textContent = longCount;
+        document.getElementById('short-signals').textContent = shortCount;
+        document.getElementById('avg-confidence').textContent = Math.round(avgConf * 100) + '%';
+      }
+
+      async function loadSignals() {
+        try {
+          const res = await fetch(`${API_BASE}/api/signals/latest?limit=20`);
+          if (res.ok) {
+            const data = await res.json();
+            allSignals = data.signals || [];
+            updateStats(allSignals);
+            applyFilters();
+          } else {
+            renderSignals([]);
+            updateStats([]);
+          }
+        } catch (e) {
+          console.error('Signals error:', e);
+          renderSignals([]);
+          updateStats([]);
+        }
+      }
+
+      function applyFilters() {
+        const actionFilter = document.getElementById('filter-action').value;
+        const confFilter = parseFloat(document.getElementById('filter-confidence').value);
+        
+        let filtered = allSignals;
+        
+        if (actionFilter !== 'all') {
+          filtered = filtered.filter(s => s.action === actionFilter);
         }
         
-        function refreshSignals() {
-            // Add loading state
-            document.getElementById('signals-list').style.opacity = '0.5';
-            
-            // Simulate refresh
-            setTimeout(() => {
-                document.getElementById('signals-list').style.opacity = '1';
-            }, 500);
+        if (confFilter > 0) {
+          filtered = filtered.filter(s => s.confidence >= confFilter);
         }
+        
+        renderSignals(filtered);
+      }
+
+      // Event listeners
+      document.getElementById('filter-action').addEventListener('change', applyFilters);
+      document.getElementById('filter-confidence').addEventListener('change', applyFilters);
+      document.getElementById('refresh-btn').addEventListener('click', loadSignals);
+
+      // Initial load
+      loadSignals();
+
+      // Refresh every minute
+      setInterval(loadSignals, 60000);
     </script>
-</body>
+  </body>
 </html>

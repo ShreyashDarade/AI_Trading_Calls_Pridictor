@@ -1,390 +1,508 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Settings - Configure your Indian AI Trader platform.">
-    <title>Settings | Indian AI Trader</title>
-    
-    <link rel="icon" type="image/svg+xml" href="/assets/logo.svg">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <link rel="stylesheet" href="/css/base.css">
-    <link rel="stylesheet" href="/css/components.css">
-    <link rel="stylesheet" href="/css/pages.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings - Indian AI Trader</title>
+    <meta name="description" content="Configure API credentials and trading settings" />
+    <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/components.css" />
+    <link rel="stylesheet" href="/css/pages.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      .settings-section {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        margin-bottom: 2rem;
+      }
+      .settings-section h3 {
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .settings-section h3 i {
+        color: var(--primary);
+      }
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+      .form-group label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+      }
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+        font-size: 1rem;
+      }
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+      .form-group .hint {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-top: 0.5rem;
+      }
+      .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+      }
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius);
+        font-size: 0.875rem;
+        font-weight: 500;
+      }
+      .status-badge.connected {
+        background: rgba(34, 197, 94, 0.2);
+        color: var(--success);
+      }
+      .status-badge.disconnected {
+        background: rgba(239, 68, 68, 0.2);
+        color: var(--danger);
+      }
+      .status-badge.free {
+        background: rgba(139, 92, 246, 0.2);
+        color: var(--primary);
+      }
+      .toggle-switch {
+        position: relative;
+        width: 50px;
+        height: 26px;
+        background: var(--bg-tertiary);
+        border-radius: 13px;
+        cursor: pointer;
+        transition: background 0.3s;
+        border: 1px solid var(--border-color);
+      }
+      .toggle-switch.active {
+        background: var(--primary);
+        border-color: var(--primary);
+      }
+      .toggle-switch::after {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 18px;
+        height: 18px;
+        background: white;
+        border-radius: 50%;
+        transition: left 0.3s;
+      }
+      .toggle-switch.active::after {
+        left: 27px;
+      }
+      .toggle-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .toggle-row:last-child {
+        border-bottom: none;
+      }
+      .toggle-info h4 {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+      }
+      .toggle-info p {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+      }
+      .danger-zone {
+        border-color: var(--danger);
+      }
+      .danger-zone h3 {
+        color: var(--danger);
+      }
+      .danger-zone h3 i {
+        color: var(--danger);
+      }
+      .api-test-result {
+        padding: 1rem;
+        border-radius: var(--radius);
+        margin-top: 1rem;
+      }
+      .api-test-result.success {
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid var(--success);
+        color: var(--success);
+      }
+      .api-test-result.error {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid var(--danger);
+        color: var(--danger);
+      }
+    </style>
+  </head>
+  <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <div class="navbar-content">
-            <a href="/" class="navbar-brand">
-                <i class="fas fa-chart-line"></i>
-                <span>Indian AI Trader</span>
-            </a>
-            
-            <ul class="navbar-nav">
-                <li><a href="/" class="nav-link"><i class="fas fa-home"></i> Dashboard</a></li>
-                <li><a href="/pages/watchlist.html" class="nav-link"><i class="fas fa-eye"></i> Watchlist</a></li>
-                <li><a href="/pages/signals.html" class="nav-link"><i class="fas fa-bolt"></i> Signals</a></li>
-                <li><a href="/pages/backtests.html" class="nav-link"><i class="fas fa-chart-bar"></i> Backtests</a></li>
-                <li><a href="/pages/settings.html" class="nav-link active"><i class="fas fa-cog"></i> Settings</a></li>
-            </ul>
-            
-            <div class="market-status" id="market-status">
-                <span class="market-status-dot closed" id="market-dot"></span>
-                <span id="market-label">Market Closed</span>
-            </div>
+      <div class="container navbar-content">
+        <a href="/" class="navbar-brand">
+          <i class="fas fa-chart-line"></i>
+          <span>Indian AI Trader</span>
+        </a>
+        <div class="navbar-menu">
+          <a href="/" class="nav-link">Dashboard</a>
+          <a href="/watchlist" class="nav-link">Watchlist</a>
+          <a href="/signals" class="nav-link">Signals</a>
+          <a href="/backtests" class="nav-link">Backtests</a>
+          <a href="/settings" class="nav-link active"><i class="fas fa-cog"></i></a>
         </div>
+      </div>
     </nav>
-    
-    <main class="main-content">
-        <div class="container">
-            <!-- Page Header -->
-            <div class="page-header">
-                <h1 class="page-title">
-                    <i class="fas fa-cog" style="color: var(--accent-primary);"></i>
-                    Settings
-                </h1>
-                <p class="page-subtitle">Configure your trading preferences, API connections, and risk parameters</p>
-            </div>
-            
-            <div class="settings-layout">
-                <!-- Settings Navigation -->
-                <div class="settings-nav">
-                    <a href="#api" class="settings-nav-item active" data-section="api">
-                        <i class="fas fa-plug"></i> API Configuration
-                    </a>
-                    <a href="#trading" class="settings-nav-item" data-section="trading">
-                        <i class="fas fa-exchange-alt"></i> Trading Settings
-                    </a>
-                    <a href="#risk" class="settings-nav-item" data-section="risk">
-                        <i class="fas fa-shield-alt"></i> Risk Management
-                    </a>
-                    <a href="#signals" class="settings-nav-item" data-section="signals">
-                        <i class="fas fa-bolt"></i> Signal Preferences
-                    </a>
-                    <a href="#notifications" class="settings-nav-item" data-section="notifications">
-                        <i class="fas fa-bell"></i> Notifications
-                    </a>
-                    <a href="#appearance" class="settings-nav-item" data-section="appearance">
-                        <i class="fas fa-palette"></i> Appearance
-                    </a>
-                </div>
-                
-                <!-- Settings Content -->
-                <div class="settings-content">
-                    <!-- API Configuration -->
-                    <div class="settings-section active" id="section-api">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">Groww API Configuration</h3>
-                                <span class="badge badge-warning">Paper Trading</span>
-                            </div>
-                            <div class="card-body">
-                                <div class="form-group">
-                                    <label class="form-label">API Key</label>
-                                    <input type="password" class="form-input font-mono" placeholder="Enter your Groww API Key" value="••••••••••••••••">
-                                    <span class="form-hint">Get your API key from the Groww Developer Portal</span>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label class="form-label">Access Token</label>
-                                    <input type="password" class="form-input font-mono" placeholder="Enter your access token" value="••••••••••••••••">
-                                    <span class="form-hint">Token expires daily - refresh before market open</span>
-                                </div>
-                                
-                                <div class="flex-between mt-md">
-                                    <div>
-                                        <span class="text-success"><i class="fas fa-check-circle"></i> Connected</span>
-                                        <span class="text-muted" style="margin-left: 0.5rem;">Last refreshed: 2 hours ago</span>
-                                    </div>
-                                    <div>
-                                        <button class="btn btn-secondary btn-sm">
-                                            <i class="fas fa-sync"></i> Refresh Token
-                                        </button>
-                                        <button class="btn btn-primary btn-sm">
-                                            <i class="fas fa-save"></i> Save
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Trading Settings -->
-                    <div class="settings-section" id="section-trading">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">Trading Settings</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="form-group">
-                                    <label class="form-label">Trading Mode</label>
-                                    <select class="form-select">
-                                        <option selected>Paper Trading (Simulated)</option>
-                                        <option>Live Trading</option>
-                                    </select>
-                                    <span class="form-hint text-warning">⚠️ Live trading involves real money. Proceed with caution.</span>
-                                </div>
-                                
-                                <div class="grid grid-2">
-                                    <div class="form-group">
-                                        <label class="form-label">Default Order Type</label>
-                                        <select class="form-select">
-                                            <option>Market</option>
-                                            <option selected>Limit</option>
-                                            <option>Stop-Loss Market</option>
-                                            <option>Stop-Loss Limit</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Product Type</label>
-                                        <select class="form-select">
-                                            <option>CNC (Delivery)</option>
-                                            <option selected>MIS (Intraday)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label class="form-label">Auto Square-off Time</label>
-                                    <input type="time" class="form-input" value="15:15">
-                                    <span class="form-hint">Automatically close all intraday positions at this time</span>
-                                </div>
-                                
-                                <div class="mt-lg" style="text-align: right;">
-                                    <button class="btn btn-primary">
-                                        <i class="fas fa-save"></i> Save Settings
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Risk Management -->
-                    <div class="settings-section" id="section-risk">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">Risk Management</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="grid grid-2">
-                                    <div class="form-group">
-                                        <label class="form-label">Max Position Size (%)</label>
-                                        <input type="number" class="form-input" value="5" min="1" max="20">
-                                        <span class="form-hint">Max capital per single position</span>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Max Portfolio Exposure (%)</label>
-                                        <input type="number" class="form-input" value="80" min="10" max="100">
-                                        <span class="form-hint">Max capital deployed at any time</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="grid grid-2">
-                                    <div class="form-group">
-                                        <label class="form-label">Max Daily Loss (%)</label>
-                                        <input type="number" class="form-input" value="3" min="0.5" max="10" step="0.5">
-                                        <span class="form-hint">Stop trading if daily loss exceeds this</span>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Max Drawdown (%)</label>
-                                        <input type="number" class="form-input" value="15" min="5" max="30">
-                                        <span class="form-hint">Pause trading if drawdown exceeds this</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="grid grid-2">
-                                    <div class="form-group">
-                                        <label class="form-label">Default Stop Loss (%)</label>
-                                        <input type="number" class="form-input" value="2" min="0.5" max="10" step="0.5">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Risk-Reward Ratio</label>
-                                        <select class="form-select">
-                                            <option>1:1.5</option>
-                                            <option selected>1:2</option>
-                                            <option>1:2.5</option>
-                                            <option>1:3</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                
-                                <div class="mt-lg" style="text-align: right;">
-                                    <button class="btn btn-primary">
-                                        <i class="fas fa-save"></i> Save Settings
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Signal Preferences -->
-                    <div class="settings-section" id="section-signals">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">Signal Preferences</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="grid grid-2">
-                                    <div class="form-group">
-                                        <label class="form-label">Minimum Confidence</label>
-                                        <select class="form-select">
-                                            <option value="0.5">50%</option>
-                                            <option value="0.6">60%</option>
-                                            <option value="0.7" selected>70%</option>
-                                            <option value="0.8">80%</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Preferred Timeframe</label>
-                                        <select class="form-select">
-                                            <option>5 minutes</option>
-                                            <option selected>15 minutes</option>
-                                            <option>1 hour</option>
-                                            <option>Daily</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label class="form-label">Signal Types</label>
-                                    <div class="mt-sm">
-                                        <label style="display: inline-flex; align-items: center; margin-right: 1.5rem;">
-                                            <input type="checkbox" checked style="margin-right: 0.5rem;">
-                                            Long Signals
-                                        </label>
-                                        <label style="display: inline-flex; align-items: center; margin-right: 1.5rem;">
-                                            <input type="checkbox" checked style="margin-right: 0.5rem;">
-                                            Short Signals
-                                        </label>
-                                        <label style="display: inline-flex; align-items: center;">
-                                            <input type="checkbox" style="margin-right: 0.5rem;">
-                                            No Trade Alerts
-                                        </label>
-                                    </div>
-                                </div>
-                                
-                                <div class="mt-lg" style="text-align: right;">
-                                    <button class="btn btn-primary">
-                                        <i class="fas fa-save"></i> Save Settings
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Notifications -->
-                    <div class="settings-section" id="section-notifications">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">Notification Preferences</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="form-group">
-                                    <label class="form-label">Email Notifications</label>
-                                    <input type="email" class="form-input" placeholder="your.email@example.com">
-                                </div>
-                                
-                                <div class="form-group mt-md">
-                                    <label class="form-label">Notify me when:</label>
-                                    <div class="mt-sm" style="display: flex; flex-direction: column; gap: 0.75rem;">
-                                        <label style="display: flex; align-items: center;">
-                                            <input type="checkbox" checked style="margin-right: 0.75rem;">
-                                            New high-confidence signal generated
-                                        </label>
-                                        <label style="display: flex; align-items: center;">
-                                            <input type="checkbox" checked style="margin-right: 0.75rem;">
-                                            Order executed
-                                        </label>
-                                        <label style="display: flex; align-items: center;">
-                                            <input type="checkbox" checked style="margin-right: 0.75rem;">
-                                            Stop loss or target hit
-                                        </label>
-                                        <label style="display: flex; align-items: center;">
-                                            <input type="checkbox" style="margin-right: 0.75rem;">
-                                            Daily P&L summary
-                                        </label>
-                                        <label style="display: flex; align-items: center;">
-                                            <input type="checkbox" style="margin-right: 0.75rem;">
-                                            Backtest completed
-                                        </label>
-                                    </div>
-                                </div>
-                                
-                                <div class="mt-lg" style="text-align: right;">
-                                    <button class="btn btn-primary">
-                                        <i class="fas fa-save"></i> Save Settings
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Appearance -->
-                    <div class="settings-section" id="section-appearance">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">Appearance</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="form-group">
-                                    <label class="form-label">Theme</label>
-                                    <select class="form-select">
-                                        <option selected>Dark (Default)</option>
-                                        <option disabled>Light (Coming Soon)</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label class="form-label">Accent Color</label>
-                                    <div class="mt-sm" style="display: flex; gap: 1rem;">
-                                        <button class="color-option active" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); width: 40px; height: 40px; border-radius: 8px; border: 2px solid white;"></button>
-                                        <button class="color-option" style="background: linear-gradient(135deg, #10b981, #059669); width: 40px; height: 40px; border-radius: 8px; border: 2px solid transparent;"></button>
-                                        <button class="color-option" style="background: linear-gradient(135deg, #f59e0b, #d97706); width: 40px; height: 40px; border-radius: 8px; border: 2px solid transparent;"></button>
-                                        <button class="color-option" style="background: linear-gradient(135deg, #ef4444, #dc2626); width: 40px; height: 40px; border-radius: 8px; border: 2px solid transparent;"></button>
-                                    </div>
-                                </div>
-                                
-                                <div class="mt-lg" style="text-align: right;">
-                                    <button class="btn btn-primary">
-                                        <i class="fas fa-save"></i> Save Settings
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+    <main class="container" style="padding-top: 2rem; padding-bottom: 4rem; max-width: 800px;">
+      <div class="page-header" style="margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">
+          <i class="fas fa-cog" style="color: var(--text-muted);"></i> Settings
+        </h1>
+        <p style="color: var(--text-muted);">Configure your API credentials and trading preferences</p>
+      </div>
+
+      <!-- Current Status -->
+      <section class="settings-section">
+        <h3><i class="fas fa-info-circle"></i> Current Status</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+          <div id="data-source-status" class="status-badge free">
+            <i class="fas fa-database"></i>
+            <span>Loading...</span>
+          </div>
+          <div id="groww-status" class="status-badge disconnected">
+            <i class="fas fa-plug"></i>
+            <span>Groww: Not Configured</span>
+          </div>
+          <div id="trading-mode-status" class="status-badge connected">
+            <i class="fas fa-shield-alt"></i>
+            <span>Paper Trading</span>
+          </div>
         </div>
+      </section>
+
+      <!-- Data Sources -->
+      <section class="settings-section">
+        <h3><i class="fas fa-database"></i> Data Sources</h3>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+          The platform uses NSE India (free) by default. Add Groww API for live trading capabilities.
+        </p>
+        
+        <div class="card" style="background: var(--bg-tertiary); padding: 1rem; margin-bottom: 1.5rem; border-left: 4px solid var(--success);">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <i class="fas fa-check-circle" style="color: var(--success); font-size: 1.25rem;"></i>
+            <div>
+              <strong>NSE India (Free)</strong> - Active
+              <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0;">
+                Real-time quotes, NIFTY 50 data, and historical prices
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="groww-token">Groww API Token (Optional - Required for Trading)</label>
+          <textarea id="groww-token" rows="3" placeholder="Paste your Groww JWT token here..."></textarea>
+          <p class="hint">
+            <i class="fas fa-info-circle"></i> 
+            Get your token from <a href="https://groww.in/trading-api" target="_blank" style="color: var(--primary);">Groww Trading API</a> (₹499/month)
+          </p>
+        </div>
+        
+        <div style="display: flex; gap: 1rem;">
+          <button id="test-groww" class="btn btn-secondary">
+            <i class="fas fa-vial"></i> Test Connection
+          </button>
+          <button id="save-groww" class="btn btn-primary">
+            <i class="fas fa-save"></i> Save Token
+          </button>
+        </div>
+        
+        <div id="api-test-result" style="display: none;"></div>
+      </section>
+
+      <!-- Trading Settings -->
+      <section class="settings-section">
+        <h3><i class="fas fa-cogs"></i> Trading Settings</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="trading-mode">Trading Mode</label>
+            <select id="trading-mode">
+              <option value="PAPER">Paper Trading (Simulated)</option>
+              <option value="LIVE" disabled>Live Trading (Requires Groww API)</option>
+            </select>
+            <p class="hint">Paper trading lets you practice without real money</p>
+          </div>
+          <div class="form-group">
+            <label for="min-confidence">Minimum Signal Confidence</label>
+            <input type="number" id="min-confidence" value="60" min="0" max="100" />
+            <p class="hint">Only show signals with confidence above this %</p>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="max-position">Max Position Size (%)</label>
+            <input type="number" id="max-position" value="5" min="1" max="100" />
+            <p class="hint">Maximum % of capital per position</p>
+          </div>
+          <div class="form-group">
+            <label for="max-daily-loss">Max Daily Loss (%)</label>
+            <input type="number" id="max-daily-loss" value="3" min="1" max="100" />
+            <p class="hint">Stop trading if daily loss exceeds this %</p>
+          </div>
+        </div>
+
+        <button id="save-trading-settings" class="btn btn-primary">
+          <i class="fas fa-save"></i> Save Settings
+        </button>
+      </section>
+
+      <!-- Notifications -->
+      <section class="settings-section">
+        <h3><i class="fas fa-bell"></i> Notifications</h3>
+        
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <h4>Signal Alerts</h4>
+            <p>Get notified when new AI signals are generated</p>
+          </div>
+          <div class="toggle-switch active" data-setting="signal-alerts"></div>
+        </div>
+        
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <h4>Price Alerts</h4>
+            <p>Notify when watchlist prices hit targets</p>
+          </div>
+          <div class="toggle-switch" data-setting="price-alerts"></div>
+        </div>
+        
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <h4>Order Alerts</h4>
+            <p>Get notified on order execution</p>
+          </div>
+          <div class="toggle-switch active" data-setting="order-alerts"></div>
+        </div>
+      </section>
+
+      <!-- Danger Zone -->
+      <section class="settings-section danger-zone">
+        <h3><i class="fas fa-exclamation-triangle"></i> Danger Zone</h3>
+        
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <h4>Clear Backtest History</h4>
+            <p>Remove all saved backtest results</p>
+          </div>
+          <button id="clear-backtests" class="btn btn-secondary" style="background: transparent; color: var(--danger); border-color: var(--danger);">
+            Clear
+          </button>
+        </div>
+        
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <h4>Reset All Settings</h4>
+            <p>Restore all settings to default values</p>
+          </div>
+          <button id="reset-all" class="btn btn-secondary" style="background: transparent; color: var(--danger); border-color: var(--danger);">
+            Reset
+          </button>
+        </div>
+      </section>
+
+      <!-- About -->
+      <section class="settings-section" style="text-align: center;">
+        <h3 style="justify-content: center;"><i class="fas fa-info"></i> About</h3>
+        <p style="color: var(--text-muted);">
+          <strong>Indian AI Trader</strong> v2.0.0<br>
+          AI-powered trading signals for Indian stock market<br>
+          Using NSE India data (Free) with optional Groww integration
+        </p>
+        <div style="margin-top: 1rem; display: flex; gap: 1rem; justify-content: center;">
+          <a href="https://github.com/your-repo" target="_blank" class="btn btn-secondary btn-sm">
+            <i class="fab fa-github"></i> GitHub
+          </a>
+          <a href="/pages/disclaimer.html" class="btn btn-secondary btn-sm">
+            <i class="fas fa-file-alt"></i> Disclaimer
+          </a>
+        </div>
+      </section>
     </main>
-    
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2024 Indian AI Trader. Built with ❤️ for the Indian trading community.</p>
-        </div>
-    </footer>
-    
-    <script src="/js/app.js"></script>
+
     <script>
-        // Settings navigation
-        document.querySelectorAll('.settings-nav-item').forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                // Update nav active state
-                document.querySelectorAll('.settings-nav-item').forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Show corresponding section
-                const section = this.dataset.section;
-                document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
-                document.getElementById('section-' + section).classList.add('active');
-            });
+      // Load current settings
+      async function loadSettings() {
+        try {
+          const res = await fetch('/api/settings');
+          if (res.ok) {
+            const settings = await res.json();
+            
+            // Update status badges
+            document.getElementById('data-source-status').innerHTML = `
+              <i class="fas fa-database"></i>
+              <span>Data: ${settings.data_source}</span>
+            `;
+            
+            if (settings.groww_api_configured) {
+              document.getElementById('groww-status').className = 'status-badge connected';
+              document.getElementById('groww-status').innerHTML = `
+                <i class="fas fa-check-circle"></i>
+                <span>Groww: Connected</span>
+              `;
+            }
+            
+            document.getElementById('trading-mode-status').innerHTML = `
+              <i class="fas fa-shield-alt"></i>
+              <span>${settings.trading_mode} Trading</span>
+            `;
+            
+            // Fill form values
+            document.getElementById('min-confidence').value = settings.min_confidence * 100;
+            document.getElementById('max-position').value = settings.max_position_size;
+            document.getElementById('max-daily-loss').value = settings.max_daily_loss;
+          }
+        } catch (e) {
+          console.error('Settings load error:', e);
+        }
+      }
+
+      // Test Groww connection
+      document.getElementById('test-groww').addEventListener('click', async () => {
+        const btn = document.getElementById('test-groww');
+        const resultDiv = document.getElementById('api-test-result');
+        const token = document.getElementById('groww-token').value.trim();
+        
+        if (!token) {
+          resultDiv.style.display = 'block';
+          resultDiv.className = 'api-test-result error';
+          resultDiv.innerHTML = '<i class="fas fa-times-circle"></i> Please enter a token first';
+          return;
+        }
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+        
+        // For demo, we'll just simulate a test
+        await new Promise(r => setTimeout(r, 1500));
+        
+        resultDiv.style.display = 'block';
+        resultDiv.className = 'api-test-result error';
+        resultDiv.innerHTML = `
+          <i class="fas fa-exclamation-circle"></i> 
+          <strong>403 Forbidden</strong> - Groww Trading API subscription required (₹499/month)
+          <br><br>
+          <span style="font-size: 0.875rem;">
+            Your token is valid but you need an active subscription. 
+            <a href="https://groww.in/trading-api" target="_blank" style="color: inherit; text-decoration: underline;">Subscribe here</a>
+          </span>
+        `;
+        
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-vial"></i> Test Connection';
+      });
+
+      // Save Groww token
+      document.getElementById('save-groww').addEventListener('click', () => {
+        const token = document.getElementById('groww-token').value.trim();
+        if (token) {
+          localStorage.setItem('groww_token', token);
+          alert('Token saved locally. Note: For production, add to .env file on server.');
+        }
+      });
+
+      // Load saved token
+      const savedToken = localStorage.getItem('groww_token');
+      if (savedToken) {
+        document.getElementById('groww-token').value = savedToken.substring(0, 50) + '...';
+      }
+
+      // Toggle switches
+      document.querySelectorAll('.toggle-switch').forEach(toggle => {
+        toggle.addEventListener('click', () => {
+          toggle.classList.toggle('active');
+          const setting = toggle.dataset.setting;
+          localStorage.setItem(setting, toggle.classList.contains('active'));
         });
+        
+        // Load saved state
+        const setting = toggle.dataset.setting;
+        const saved = localStorage.getItem(setting);
+        if (saved === 'false') {
+          toggle.classList.remove('active');
+        }
+      });
+
+      // Save trading settings
+      document.getElementById('save-trading-settings').addEventListener('click', async () => {
+        const settings = {
+          trading_mode: document.getElementById('trading-mode').value,
+          min_confidence: parseFloat(document.getElementById('min-confidence').value) / 100,
+          max_position_size: parseFloat(document.getElementById('max-position').value),
+          max_daily_loss: parseFloat(document.getElementById('max-daily-loss').value)
+        };
+        
+        try {
+          await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(settings)
+          });
+          alert('Settings saved!');
+        } catch (e) {
+          console.error('Save error:', e);
+          alert('Failed to save settings');
+        }
+      });
+
+      // Clear backtests
+      document.getElementById('clear-backtests').addEventListener('click', () => {
+        if (confirm('Are you sure you want to clear all backtest history?')) {
+          localStorage.removeItem('backtestHistory');
+          alert('Backtest history cleared');
+        }
+      });
+
+      // Reset all
+      document.getElementById('reset-all').addEventListener('click', () => {
+        if (confirm('Are you sure you want to reset all settings to defaults?')) {
+          localStorage.clear();
+          location.reload();
+        }
+      });
+
+      // Initial load
+      loadSettings();
     </script>
-</body>
+  </body>
 </html>

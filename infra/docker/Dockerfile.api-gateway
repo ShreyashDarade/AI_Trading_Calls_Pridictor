@@ -1,0 +1,45 @@
+# Multi-stage Dockerfile for API Gateway
+FROM python:3.11-slim as builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt .
+RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
+
+# Production stage
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Create non-root user
+RUN groupadd -r trader && useradd -r -g trader trader
+
+# Install wheels
+COPY --from=builder /wheels /wheels
+RUN pip install --no-cache-dir /wheels/* && rm -rf /wheels
+
+# Copy application code
+COPY libs/ ./libs/
+COPY apps/api-gateway/ ./apps/api-gateway/
+COPY apps/web/ ./apps/web/
+
+# Set ownership
+RUN chown -R trader:trader /app
+
+USER trader
+
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import httpx; httpx.get('http://localhost:8000/api/health')" || exit 1
+
+CMD ["python", "-m", "uvicorn", "apps.api_gateway.src.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,0 +1,280 @@
+# Kubernetes Deployment for AI Trading Platform
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai-trader
+---
+# ConfigMap for shared configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-trader-config
+  namespace: ai-trader
+data:
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "INFO"
+  POSTGRES_HOST: "postgres-service"
+  CLICKHOUSE_HOST: "clickhouse-service"
+  REDIS_HOST: "redis-service"
+  KAFKA_BOOTSTRAP_SERVERS: "kafka-service:9092"
+---
+# Secret for sensitive data (create with: kubectl create secret)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ai-trader-secrets
+  namespace: ai-trader
+type: Opaque
+stringData:
+  GROWW_API_KEY: "your-api-key"
+  GROWW_ACCESS_TOKEN: "your-access-token"
+  POSTGRES_PASSWORD: "secure-password"
+  JWT_SECRET_KEY: "super-secret-jwt-key"
+---
+# API Gateway Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: ai-trader
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: ai-trader/api-gateway:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: ai-trader-config
+            - secretRef:
+                name: ai-trader-secrets
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway-service
+  namespace: ai-trader
+spec:
+  selector:
+    app: api-gateway
+  ports:
+    - port: 80
+      targetPort: 8000
+  type: LoadBalancer
+---
+# Signal Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: signal-service
+  namespace: ai-trader
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: signal-service
+  template:
+    metadata:
+      labels:
+        app: signal-service
+    spec:
+      containers:
+        - name: signal-service
+          image: ai-trader/signal-service:latest
+          ports:
+            - containerPort: 8005
+          envFrom:
+            - configMapRef:
+                name: ai-trader-config
+            - secretRef:
+                name: ai-trader-secrets
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: signal-service
+  namespace: ai-trader
+spec:
+  selector:
+    app: signal-service
+  ports:
+    - port: 8005
+      targetPort: 8005
+  type: ClusterIP
+---
+# Portfolio Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portfolio-service
+  namespace: ai-trader
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: portfolio-service
+  template:
+    metadata:
+      labels:
+        app: portfolio-service
+    spec:
+      containers:
+        - name: portfolio-service
+          image: ai-trader/portfolio-service:latest
+          ports:
+            - containerPort: 8007
+          envFrom:
+            - configMapRef:
+                name: ai-trader-config
+            - secretRef:
+                name: ai-trader-secrets
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: portfolio-service
+  namespace: ai-trader
+spec:
+  selector:
+    app: portfolio-service
+  ports:
+    - port: 8007
+      targetPort: 8007
+  type: ClusterIP
+---
+# Safety Guards Deployment (Critical - single replica for consistency)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: safety-guards
+  namespace: ai-trader
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: safety-guards
+  template:
+    metadata:
+      labels:
+        app: safety-guards
+    spec:
+      containers:
+        - name: safety-guards
+          image: ai-trader/safety-guards:latest
+          ports:
+            - containerPort: 8017
+          envFrom:
+            - configMapRef:
+                name: ai-trader-config
+            - secretRef:
+                name: ai-trader-secrets
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: safety-guards-service
+  namespace: ai-trader
+spec:
+  selector:
+    app: safety-guards
+  ports:
+    - port: 8017
+      targetPort: 8017
+  type: ClusterIP
+---
+# Horizontal Pod Autoscaler for API Gateway
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api-gateway-hpa
+  namespace: ai-trader
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api-gateway
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+---
+# Ingress for external access
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ai-trader-ingress
+  namespace: ai-trader
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - api.aitrader.example.com
+      secretName: ai-trader-tls
+  rules:
+    - host: api.aitrader.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway-service
+                port:
+                  number: 80
