@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="45" fill="url(#gradient)" opacity="0.1"/>
+  
+  <!-- Chart line (upward trend) -->
+  <polyline 
+    points="15,70 30,55 45,60 60,35 75,45 85,25" 
+    fill="none" 
+    stroke="url(#gradient)" 
+    stroke-width="4" 
+    stroke-linecap="round" 
+    stroke-linejoin="round"/>
+  
+  <!-- Arrow head -->
+  <polygon 
+    points="85,25 78,32 82,35" 
+    fill="#8b5cf6"/>
+  
+  <!-- AI symbol / brain -->
+  <circle cx="50" cy="68" r="12" fill="none" stroke="url(#gradient)" stroke-width="2"/>
+  <path d="M44,68 Q50,60 56,68" fill="none" stroke="url(#gradient)" stroke-width="2"/>
+  <circle cx="46" cy="66" r="2" fill="#3b82f6"/>
+  <circle cx="54" cy="66" r="2" fill="#8b5cf6"/>
+</svg>

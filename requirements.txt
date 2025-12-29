@@ -1,0 +1,96 @@
+# ============================================
+# INDIAN AI TRADER - PYTHON DEPENDENCIES
+# ============================================
+
+# Core Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+# Async Support
+asyncio==3.4.3
+aiohttp==3.9.1
+httpx==0.26.0
+websockets==12.0
+
+# Database Drivers
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+clickhouse-driver==0.2.6
+clickhouse-connect==0.7.0
+redis==5.0.1
+aioredis==2.0.1
+
+# Message Queue
+aiokafka==0.10.0
+confluent-kafka==2.3.0
+
+# Data Processing
+pandas==2.1.4
+numpy==1.26.3
+polars==0.20.3
+
+# Technical Analysis
+ta-lib==0.4.28
+pandas-ta==0.3.14b
+
+# Machine Learning
+scikit-learn==1.3.2
+xgboost==2.0.3
+lightgbm==4.2.0
+joblib==1.3.2
+
+# Deep Learning (optional)
+torch==2.1.2
+tensorflow==2.15.0
+
+# Model Serving
+bentoml==1.1.10
+mlflow==2.9.2
+
+# API & Serialization
+orjson==3.9.10
+python-multipart==0.0.6
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# HTTP Client for Groww API
+requests==2.31.0
+urllib3==2.1.0
+
+# Scheduling & Tasks
+apscheduler==3.10.4
+celery==5.3.4
+
+# Observability
+opentelemetry-api==1.22.0
+opentelemetry-sdk==1.22.0
+opentelemetry-exporter-otlp==1.22.0
+opentelemetry-instrumentation-fastapi==0.43b0
+prometheus-client==0.19.0
+structlog==24.1.0
+
+# Testing
+pytest==7.4.4
+pytest-asyncio==0.23.3
+pytest-cov==4.1.0
+httpx==0.26.0
+faker==22.0.0
+
+# Development Tools
+black==23.12.1
+isort==5.13.2
+flake8==7.0.0
+mypy==1.8.0
+pre-commit==3.6.0
+
+# Utilities
+python-dotenv==1.0.0
+pyyaml==6.0.1
+tenacity==8.2.3
+python-dateutil==2.8.2
+pytz==2023.3.post1
+
+# CSV Processing (for Groww instrument master)
+aiofiles==23.2.1

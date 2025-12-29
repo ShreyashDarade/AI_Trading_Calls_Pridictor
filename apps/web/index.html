@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="AI-powered Indian stock market research platform with real-time signals, backtesting, and portfolio management using Groww API."
+    />
+    <meta
+      name="keywords"
+      content="Indian stock market, AI trading signals, NSE, BSE, stock research, algorithmic trading"
+    />
+    <meta name="author" content="Indian AI Trader" />
+
+    <title>Indian AI Trader | AI-Powered Stock Market Signals</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/assets/logo.svg" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/components.css" />
+    <link rel="stylesheet" href="/css/pages.css" />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="navbar-content">
+        <a href="/" class="navbar-brand">
+          <i class="fas fa-chart-line"></i>
+          <span>Indian AI Trader</span>
+        </a>
+
+        <ul class="navbar-nav">
+          <li>
+            <a href="/" class="nav-link active"
+              ><i class="fas fa-home"></i> Dashboard</a
+            >
+          </li>
+          <li>
+            <a href="/watchlist" class="nav-link"
+              ><i class="fas fa-eye"></i> Watchlist</a
+            >
+          </li>
+          <li>
+            <a href="/signals" class="nav-link"
+              ><i class="fas fa-bolt"></i> Signals</a
+            >
+          </li>
+          <li>
+            <a href="/pages/backtests.html" class="nav-link"
+              ><i class="fas fa-chart-bar"></i> Backtests</a
+            >
+          </li>
+          <li>
+            <a href="/pages/settings.html" class="nav-link"
+              ><i class="fas fa-cog"></i> Settings</a
+            >
+          </li>
+        </ul>
+
+        <div class="market-status" id="market-status">
+          <span class="market-status-dot closed" id="market-dot"></span>
+          <span id="market-label">Market Closed</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="container">
+        <!-- Hero Section -->
+        <section class="dashboard-hero animate-fadeIn">
+          <h1 class="dashboard-hero-title">AI-Powered Trading Signals</h1>
+          <p class="dashboard-hero-subtitle">
+            Real-time market analysis, intelligent signals, and comprehensive
+            research tools for the Indian stock market.
+          </p>
+        </section>
+
+        <!-- Stats Overview -->
+        <section class="dashboard-stats animate-slideUp">
+          <div class="card stat-card">
+            <div class="stat-value" id="stat-portfolio">₹10,00,000</div>
+            <div class="stat-label">Portfolio Value</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-value positive" id="stat-pnl">+₹23,450</div>
+            <div class="stat-label">Today's P&L</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-value" id="stat-signals">12</div>
+            <div class="stat-label">Active Signals</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-value" id="stat-accuracy">76%</div>
+            <div class="stat-label">Signal Accuracy</div>
+          </div>
+        </section>
+
+        <!-- Portfolio Summary -->
+        <section class="dashboard-section">
+          <div class="section-header">
+            <h2 class="section-title">Portfolio Overview</h2>
+            <a href="/pages/portfolio.html" class="btn btn-secondary btn-sm">
+              View Details <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+
+          <div class="portfolio-summary">
+            <div class="card portfolio-value-card">
+              <div class="portfolio-value" id="portfolio-total">₹10,23,450</div>
+              <div class="portfolio-pnl positive">
+                <span class="portfolio-pnl-value">+₹23,450</span>
+                <span class="portfolio-pnl-percent">+2.34%</span>
+              </div>
+              <div
+                class="mt-md"
+                style="color: var(--text-muted); font-size: 0.875rem"
+              >
+                <span>Invested: ₹4,50,000</span>
+                <span style="margin-left: 1rem">Available: ₹5,50,000</span>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Open Positions</h3>
+                <span class="badge badge-info">2 positions</span>
+              </div>
+              <div class="card-body">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Symbol</th>
+                      <th>Qty</th>
+                      <th>Avg Price</th>
+                      <th>LTP</th>
+                      <th>P&L</th>
+                    </tr>
+                  </thead>
+                  <tbody id="positions-table">
+                    <tr>
+                      <td><strong>RELIANCE</strong></td>
+                      <td>50</td>
+                      <td class="font-mono">₹2,400.00</td>
+                      <td class="font-mono" id="ltp-reliance">₹2,456.75</td>
+                      <td class="text-success font-mono">
+                        +₹2,837.50 (+2.36%)
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>SBIN</strong></td>
+                      <td>200</td>
+                      <td class="font-mono">₹620.00</td>
+                      <td class="font-mono" id="ltp-sbin">₹634.25</td>
+                      <td class="text-success font-mono">
+                        +₹2,850.00 (+2.30%)
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Watchlist & Signals -->
+        <div class="grid grid-2">
+          <!-- Watchlist -->
+          <section class="dashboard-section">
+            <div class="section-header">
+              <h2 class="section-title">NIFTY 50 Watchlist</h2>
+              <a href="/watchlist" class="btn btn-secondary btn-sm">
+                View All <i class="fas fa-arrow-right"></i>
+              </a>
+            </div>
+
+            <div class="card">
+              <div class="card-body" style="padding: 0">
+                <div
+                  id="watchlist-items"
+                  style="max-height: 400px; overflow-y: auto"
+                >
+                  <!-- Watchlist items will be inserted here -->
+                  <div
+                    class="stock-tile"
+                    onclick="window.location='/stock/RELIANCE'"
+                  >
+                    <div class="stock-info">
+                      <span class="stock-symbol">RELIANCE</span>
+                      <span class="stock-name">Reliance Industries</span>
+                    </div>
+                    <div class="stock-price-container">
+                      <div class="stock-ltp">₹2,456.75</div>
+                      <div class="stock-change positive">
+                        <i class="fas fa-caret-up"></i>
+                        <span>+1.25 (+0.05%)</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="stock-tile"
+                    onclick="window.location='/stock/TCS'"
+                  >
+                    <div class="stock-info">
+                      <span class="stock-symbol">TCS</span>
+                      <span class="stock-name">Tata Consultancy Services</span>
+                    </div>
+                    <div class="stock-price-container">
+                      <div class="stock-ltp">₹3,890.50</div>
+                      <div class="stock-change negative">
+                        <i class="fas fa-caret-down"></i>
+                        <span>-12.30 (-0.32%)</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="stock-tile"
+                    onclick="window.location='/stock/HDFCBANK'"
+                  >
+                    <div class="stock-info">
+                      <span class="stock-symbol">HDFCBANK</span>
+                      <span class="stock-name">HDFC Bank</span>
+                    </div>
+                    <div class="stock-price-container">
+                      <div class="stock-ltp">₹1,678.25</div>
+                      <div class="stock-change positive">
+                        <i class="fas fa-caret-up"></i>
+                        <span>+8.45 (+0.51%)</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="stock-tile"
+                    onclick="window.location='/stock/INFY'"
+                  >
+                    <div class="stock-info">
+                      <span class="stock-symbol">INFY</span>
+                      <span class="stock-name">Infosys</span>
+                    </div>
+                    <div class="stock-price-container">
+                      <div class="stock-ltp">₹1,567.80</div>
+                      <div class="stock-change negative">
+                        <i class="fas fa-caret-down"></i>
+                        <span>-5.20 (-0.33%)</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="stock-tile"
+                    onclick="window.location='/stock/SBIN'"
+                  >
+                    <div class="stock-info">
+                      <span class="stock-symbol">SBIN</span>
+                      <span class="stock-name">State Bank of India</span>
+                    </div>
+                    <div class="stock-price-container">
+                      <div class="stock-ltp">₹634.25</div>
+                      <div class="stock-change positive">
+                        <i class="fas fa-caret-up"></i>
+                        <span>+12.40 (+1.99%)</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Recent Signals -->
+          <section class="dashboard-section">
+            <div class="section-header">
+              <h2 class="section-title">Latest AI Signals</h2>
+              <a href="/signals" class="btn btn-secondary btn-sm">
+                View All <i class="fas fa-arrow-right"></i>
+              </a>
+            </div>
+
+            <div id="signals-container">
+              <!-- Signal Card 1 -->
+              <div class="signal-card long mb-md">
+                <div class="signal-header">
+                  <span class="signal-symbol">RELIANCE</span>
+                  <span class="signal-action long">
+                    <i class="fas fa-arrow-up"></i> LONG
+                  </span>
+                </div>
+                <div class="signal-confidence">
+                  <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: 78%"></div>
+                  </div>
+                  <span class="confidence-value">78%</span>
+                </div>
+                <div class="signal-levels">
+                  <div class="signal-level">
+                    <div class="signal-level-label">Entry</div>
+                    <div class="signal-level-value">₹2,450</div>
+                  </div>
+                  <div class="signal-level">
+                    <div class="signal-level-label">Stop Loss</div>
+                    <div class="signal-level-value text-danger">₹2,400</div>
+                  </div>
+                  <div class="signal-level">
+                    <div class="signal-level-label">Target</div>
+                    <div class="signal-level-value text-success">₹2,520</div>
+                  </div>
+                </div>
+                <div class="signal-reasons">
+                  <span class="reason-tag">RSI_OVERSOLD</span>
+                  <span class="reason-tag">MACD_BULLISH</span>
+                  <span class="reason-tag">HIGH_VOLUME</span>
+                </div>
+              </div>
+
+              <!-- Signal Card 2 -->
+              <div class="signal-card long mb-md">
+                <div class="signal-header">
+                  <span class="signal-symbol">SBIN</span>
+                  <span class="signal-action long">
+                    <i class="fas fa-arrow-up"></i> LONG
+                  </span>
+                </div>
+                <div class="signal-confidence">
+                  <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: 82%"></div>
+                  </div>
+                  <span class="confidence-value">82%</span>
+                </div>
+                <div class="signal-levels">
+                  <div class="signal-level">
+                    <div class="signal-level-label">Entry</div>
+                    <div class="signal-level-value">₹630</div>
+                  </div>
+                  <div class="signal-level">
+                    <div class="signal-level-label">Stop Loss</div>
+                    <div class="signal-level-value text-danger">₹615</div>
+                  </div>
+                  <div class="signal-level">
+                    <div class="signal-level-label">Target</div>
+                    <div class="signal-level-value text-success">₹655</div>
+                  </div>
+                </div>
+                <div class="signal-reasons">
+                  <span class="reason-tag">BREAKOUT</span>
+                  <span class="reason-tag">UPTREND</span>
+                  <span class="reason-tag">HIGH_VOLUME</span>
+                </div>
+              </div>
+
+              <!-- Signal Card 3 -->
+              <div class="signal-card no-trade">
+                <div class="signal-header">
+                  <span class="signal-symbol">TCS</span>
+                  <span class="signal-action no-trade">
+                    <i class="fas fa-minus"></i> NO TRADE
+                  </span>
+                </div>
+                <div class="signal-confidence">
+                  <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: 45%"></div>
+                  </div>
+                  <span class="confidence-value">45%</span>
+                </div>
+                <div class="signal-reasons">
+                  <span class="reason-tag">SIDEWAYS</span>
+                  <span class="reason-tag">LOW_VOLATILITY</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <p>
+          &copy; 2024 Indian AI Trader. Built with ❤️ for the Indian trading
+          community.
+          <br />
+          <a href="/pages/privacy.html">Privacy Policy</a> •
+          <a href="/pages/terms.html">Terms of Service</a> •
+          <a href="/pages/disclaimer.html">Risk Disclaimer</a>
+        </p>
+      </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="/js/app.js"></script>
+    <script>
+      // Initialize dashboard
+      document.addEventListener("DOMContentLoaded", function () {
+        // Update market status
+        updateMarketStatus();
+
+        // Start SSE for live updates
+        if (typeof startLiveUpdates === "function") {
+          startLiveUpdates();
+        }
+      });
+
+      function updateMarketStatus() {
+        const now = new Date();
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        const day = now.getDay();
+
+        const isWeekend = day === 0 || day === 6;
+        const marketOpen = (hours === 9 && minutes >= 15) || hours > 9;
+        const marketClose = (hours === 15 && minutes <= 30) || hours < 15;
+        const isOpen = !isWeekend && marketOpen && marketClose;
+
+        const dot = document.getElementById("market-dot");
+        const label = document.getElementById("market-label");
+
+        if (isOpen) {
+          dot.classList.remove("closed");
+          dot.classList.add("open");
+          label.textContent = "Market Open";
+        } else {
+          dot.classList.remove("open");
+          dot.classList.add("closed");
+          label.textContent = "Market Closed";
+        }
+      }
+    </script>
+  </body>
+</html>

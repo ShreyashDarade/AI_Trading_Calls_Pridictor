@@ -1,0 +1,74 @@
+# Prometheus Configuration for Indian AI Trader
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+rule_files: []
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # API Gateway
+  - job_name: "api-gateway"
+    static_configs:
+      - targets: ["host.docker.internal:8000"]
+    metrics_path: "/metrics"
+
+  # Instrument Service
+  - job_name: "instrument-service"
+    static_configs:
+      - targets: ["host.docker.internal:8001"]
+
+  # Market Ingestor
+  - job_name: "market-ingestor"
+    static_configs:
+      - targets: ["host.docker.internal:8002"]
+
+  # Bar Aggregator
+  - job_name: "bar-aggregator"
+    static_configs:
+      - targets: ["host.docker.internal:8003"]
+
+  # Feature Service
+  - job_name: "feature-service"
+    static_configs:
+      - targets: ["host.docker.internal:8004"]
+
+  # Signal Service
+  - job_name: "signal-service"
+    static_configs:
+      - targets: ["host.docker.internal:8005"]
+
+  # Backtest Service
+  - job_name: "backtest-service"
+    static_configs:
+      - targets: ["host.docker.internal:8006"]
+
+  # Portfolio Service
+  - job_name: "portfolio-service"
+    static_configs:
+      - targets: ["host.docker.internal:8007"]
+
+  # Redis
+  - job_name: "redis"
+    static_configs:
+      - targets: ["redis:6379"]
+
+  # PostgreSQL (via postgres_exporter if configured)
+  # - job_name: 'postgres'
+  #   static_configs:
+  #     - targets: ['postgres-exporter:9187']
+
+  # ClickHouse
+  # - job_name: 'clickhouse'
+  #   static_configs:
+  #     - targets: ['clickhouse:9363']
